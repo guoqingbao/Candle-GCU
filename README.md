@@ -1,92 +1,388 @@
 # Candle-GCU
+[![discord server](https://dcbadge.vercel.app/api/server/hugging-face-879548962464493619)](https://discord.com/channels/879548962464493619/1136218819447238726)
+[![Latest version](https://img.shields.io/crates/v/candle-core.svg)](https://crates.io/crates/candle-core)
+[![Documentation](https://docs.rs/candle-core/badge.svg)](https://docs.rs/candle-core)
+![License](https://img.shields.io/crates/l/candle-core.svg)
 
+Candle is a minimalist ML framework (developed by HuggingFace) for Rust with a focus on performance (including GPU support) 
+and ease of use. 
 
+This project tries to intergrate GCU backend to Candle.
 
-## Getting started
+## Designed Workflow
+Candle + GCU Backend -> Ubridge -> UHHI -> GCU Runtime (http://git.enflame.cn/sw/caps)
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## TODO
+Write corresponding GCU kernerls (written in TopsCC)
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## Sample (LLaMa2 Inference)
+Download LLaMa2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains the following files:
 
-## Add your files
+config.json             model-00001-of-00002.safetensors  pytorch_model-00001-of-00002.bin  special_tokens_map.json  tokenizer.model
+convert.py              model-00002-of-00002.safetensors  pytorch_model-00002-of-00002.bin  tokenizer_config.json    tosafetensor.py
+generation_config.json  pytorch_model.bin.index.json      tokenizer.json
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+Run the following command:
 
+``` shell
+cargo run --example llama -- --local-weights THE_WEIGHT_FOLDER --prompt "Please give me 200 words about deep learning."
 ```
-cd existing_repo
-git remote add origin http://git.enflame.cn/era/candle-gcu.git
-git branch -M main
-git push -uf origin main
+
+**The inference result is not correct because I haven't write all kernels. Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels need to be implemented, i.e., affine, binary, cast, conv, matmul (under testing), fill, indexing, reduce, and unary (finished). The referenceing CUDA kernels can be found in candle-kernels.**
+
+## Get started
+
+### Sample GCU Backend Impl for Candle
+
+For Unary OP
+
+```rust
+impl<U: UnaryOpT> Map1 for U {
+    fn f<T: DeviceCopy + WithDType>(
+        &self,
+        src: &GcuSlice<T>,
+        dev: &GcuDevice,
+        layout: &Layout,
+    ) -> Result<GcuSlice<T>> {
+        let shape = layout.shape();
+        let dims = shape.dims();
+        let el_count = shape.elem_count();
+        let cfg = GcuLaunchConfig::for_num_elems(el_count as u32);
+        let ds = dev.htod_copy([dims, layout.stride()].concat()).w()?; //data layout buffer
+        let src = &src.slice(layout.start_offset()..); //input slice
+        let func = dev.get_or_load_func(&kernel_name::<T>(U::KERNEL), ubridge::UNARY)?; //load GCU kernel
+        // SAFETY: Set later by running the kernel.
+        let out = dev.alloc::<T>(el_count).w()?; //output buffer
+        let params = (el_count, dims.len(), &ds, src, &out); //launch kernel params
+        // SAFETY: ffi.
+        unsafe { func.launch(cfg, params) }.w()?; //kernel launch
+        Ok(out)
+    }
+}
 ```
 
-## Integrate with your tools
+### Sample usage of ubridge
 
-- [ ] [Set up project integrations](http://git.enflame.cn/era/candle-gcu/-/settings/integrations)
+GCU Alloc Function: device alloc (Candle) -> alloc (ubridge) -> DeviceBuffer uninitialized (UHHI) -> CAPS/TopsAPI
 
-## Collaborate with your team
+``` rust
+    pub fn alloc<T: DeviceCopy>(
+        self: &Arc<Self>,
+        len: usize,
+    ) -> DeviceResult<GcuSlice<T>> {
+        let device_ptr = if self.is_async {
+            unsafe { DeviceBuffer::uninitialized_async(len, &self.stream.unwrap())? }
+        } else {
+            unsafe { DeviceBuffer::uninitialized(len)? }
+        };
+        Ok(GcuSlice {
+            buffer: device_ptr,
+            len,
+            device: self.clone(),
+            host_buf: None,
+        })
+    }
+```
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+CPU Input Buffers -> GCU Compute -> CPU Result Buffers
 
-## Test and Deploy
+``` rust
+match DeviceExecutor::get_gcu_executor(0) {
+    Some(gcu_executor) => {
 
-Use the built-in continuous integration in GitLab.
+        // let rawptr = lhs.as_ptr().cast::<f32>();
+        // let ltensor = DeviceTensor::from_pointer(rawptr, m * k, vec![b, m, k]).unwrap();
+        let ltensor = DeviceTensor::from_vec_shape(&vec![1.0f32; b*m*k], vec![b, m, k]).unwrap();
+        // let rawptr = rhs.as_ptr().cast::<f32>();
+        // let rtensor = DeviceTensor::from_pointer(rawptr, k * n, vec![b, k, n]).unwrap();
+        let rtensor = DeviceTensor::from_vec_shape(&vec![1.0f32; b*k*n], vec![b, k, n]).unwrap();
+        let mut dst: Vec<f32> = Vec::with_capacity(b * m * n);
+        unsafe { dst.set_len(b * m * n); }
+        match gcu_executor.transposed_matmul_owned(&ltensor, &rtensor, true) {
+            Ok(tensor) => {
+                match tensor.to_cpu(&mut dst) {
+                    Ok(_) => {
+                        let ret = cast_ref::<Vec<f32>, Vec<T>>(&dst).unwrap();
+                        return Ok(ret.to_owned());
+                    }
+                    _=> { panic!("Unable to copy results back to cpu!");}
+                }
+            }
+            _=> {}
+        }
+    }
+    _=> {  }
+}
+```
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+### Sample usage of UHHI
 
-***
+Example of UHAL/UHHI for neural network forward pass (on NVidia GPU & Enflame GCU)
 
-# Editing this README
+Enflame GCU: Install Enflame Driver 2.4.1+ and CAPS (TopsCC, TopsRuntime)
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
+``` rust
+use cust_core::DeviceCopy;
+use std::collections::HashMap;
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+//Import UHAL for common computing interface
+use uhal::launch;
+use uhal::error::{DeviceResult};
+use uhal::{DriverLibraryTrait};
+use uhal::module::{ModuleTrait};
+use uhal::memory::{DeviceBufferTrait};
+use uhal::stream::{StreamTrait, StreamFlags};
 
-## Name
-Choose a self-explaining name for your project.
+//Tops backend
+#[cfg(feature = "tops_backend")]
+use tops_backend as tops;
+#[cfg(feature = "tops_backend")]
+use tops::memory::TopsDeviceBuffer as DeviceBuffer;
+#[cfg(feature = "tops_backend")]
+use tops::memory::CopyDestination;
+#[cfg(feature = "tops_backend")]
+use tops::stream::TopsStream as Stream;
+#[cfg(feature = "tops_backend")]
+use tops::module::TopsModule as Module;
+#[cfg(feature = "tops_backend")]
+use tops::TopsApi as Api;
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+//Cuda backend
+#[cfg(feature = "cuda_backend")]
+use cuda_backend as cuda;
+#[cfg(feature = "cuda_backend")]
+use cuda::memory::CuDeviceBuffer as DeviceBuffer;
+#[cfg(feature = "cuda_backend")]
+use cuda::memory::CopyDestination;
+#[cfg(feature = "cuda_backend")]
+use cuda::stream::CuStream as Stream;
+#[cfg(feature = "cuda_backend")]
+use cuda::module::CuModule as Module;
+#[cfg(feature = "cuda_backend")]
+use cuda::CuApi as Api;
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+//Load kernel module
+fn load_module<'a>(name : &str) -> DeviceResult<Module>{
+    #[cfg(feature = "tops_backend")]
+    let ptx = format!("{}/kernels/{}.o", env!("CARGO_MANIFEST_DIR"), name).to_string();
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+    #[cfg(feature = "cuda_backend")]
+    let ptx = format!("{}/kernels/{}.ptx", env!("CARGO_MANIFEST_DIR"), name).to_string();
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+    Module::from_file(&ptx)
+}
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+//Neural network layer definition
+struct Layer<'a, T: DeviceCopy> {
+    op : &'a str,
+    weight : Option<DeviceBuffer<T>>,
+    input_size : (usize, usize),
+    output_size : (usize, usize),
+    out_ref : Option<&'a DeviceBuffer<T>>
+}
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+//A 6-layer neural network forward pass
+//Unified interface (UHAL) for CUDA and Tops backend
+#[allow(non_snake_case)]
+fn network_test() -> DeviceResult<()> {
+    let _device = Api::quick_init(0)?;
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+    //The entire workflow computed on this stream without copy back & forth between GPU/GCU memory and host memory.
+    let stream = Stream::new(StreamFlags::NON_BLOCKING, None)?;
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+    const N : usize = 16;
+    const K : usize = 3;
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+    //Neural network layers: matmul(tanh act) -> matmul(relu act) -> matmul(tanh act) -> convolution(3x3 kernel, tanh act) -> matmul(tanh act) -> matmul(leaky act)
+    let layers = vec![
+        Layer::<f32> {op : "matmul", weight: Some(DeviceBuffer::from_slice(&[0.01f32; N * N])?), input_size : (N, N), output_size : (N, N), out_ref : None}, //weight is N x N matric for next layer
+        Layer::<f32> {op : "tanh", weight : None, input_size : (N, N), output_size : (N, N), out_ref : None}, //out N x N
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+        Layer::<f32> {op : "matmul", weight: Some(DeviceBuffer::from_slice(&[0.02f32; N * N])?), input_size : (N, N), output_size : (N, N), out_ref : None}, //weight is N x N matric for next layer
+        Layer::<f32> {op : "relu", weight : None, input_size : (N, N), output_size : (N, N), out_ref : None}, //out N x N
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+        Layer::<f32> {op : "matmul", weight: Some(DeviceBuffer::from_slice(&[0.5f32; K * K])?), input_size : (N, N), output_size : (N, N), out_ref : None}, //weight is convolution kernel for next layer
+        Layer::<f32> {op : "tanh", weight : None, input_size : (N, N), output_size : (N, N), out_ref : None}, //out N x N
 
-## License
-For open source projects, say how it is licensed.
+        Layer::<f32> {op : "convolution", weight: Some(DeviceBuffer::from_slice(&[0.2f32; (N - K + 1) * (N - K + 1)])?), input_size : (N, N), output_size : (N - K + 1, N - K + 1), out_ref : None}, //weight is (N - K + 1) * (N - K + 1) matric for next layer
+        Layer::<f32> {op : "tanh", weight : None, input_size : (N - K + 1, N - K + 1), output_size : (N - K + 1, N - K + 1), out_ref : None},  //out (N - K + 1) x (N - K + 1)
+        
+        Layer::<f32> {op : "matmul", weight: Some(DeviceBuffer::from_slice(&[0.2f32; (N - K + 1) * (N - K + 1)])?), input_size : (N - K + 1, N - K + 1), output_size : (N - K + 1, N - K + 1), out_ref : None}, //weight is (N - K + 1) * (N - K + 1) matric for next layer
+        Layer::<f32> {op : "tanh", weight : None, input_size : (N - K + 1, N - K + 1), output_size : (N - K + 1, N - K + 1), out_ref : None}, //output shape (N - K + 1) * (N - K + 1)
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+        Layer::<f32> {op : "matmul", weight: None, input_size : (N - K + 1, N - K + 1), output_size : (N - K + 1, N - K + 1), out_ref : None}, // no weight in the last layer
+        Layer::<f32> {op : "gelu", weight : None, input_size : (N - K + 1, N - K + 1), output_size : (N - K + 1, N - K + 1), out_ref : None}, //output shape (N - K + 1) * (N - K + 1)
+    ];
+
+    //Buffers on device (GPU/GCU), initialized with values
+    let mut matA = DeviceBuffer::from_slice(&[0.5f32; N * N])?;
+    let mut matB = DeviceBuffer::from_slice(&[0.1f32; N * N])?;
+    let mut matOut = DeviceBuffer::from_slice(&[0.0f32; N * N])?;
+    let mut matConvOut = DeviceBuffer::from_slice(&[0.0f32; (N - K + 1) * (N - K + 1)])?;
+
+    //For activation type mapping
+    let map_act = HashMap::from([("relu", 0), ("gelu", 1), ("leaky", 2), ("tanh", 3)]);
+
+    //Reference to output
+    let mut out_ref : Option<&DeviceBuffer<f32>> = None;
+    let mut out_size : Option<(usize, usize)> = None;
+
+    //Forward computing
+    for layer in layers {
+        if ["relu", "gelu", "leaky", "tanh"].contains(&layer.op) {
+            let function_name = "activation";
+            match load_module(function_name) {
+                Ok(module) => {
+                    let kernel = module.get_function(&function_name)?;
+                    unsafe {
+                        //Slightly difference calling parameter for GCU and GPU.
+                        #[cfg(feature = "tops_backend")]
+                        let result = launch!(kernel<<<(1, 1, 1), (1, 1, 1), 0, stream>>>(
+                            matA.as_device_ptr(),
+                            (layer.input_size.0 * layer.input_size.1) as i32,
+                            map_act[layer.op] as i32
+                        ));
+
+                        #[cfg(feature = "cuda_backend")]
+                        let result = launch!(kernel<<<(1, 1, 1), (layer.input_size.0 as u32, layer.input_size.1 as u32, 1), 0, stream>>>(
+                            matA.as_device_ptr(),
+                            layer.output_size.0,
+                            map_act[layer.op]
+                        ));
+
+                        result?;
+                    }
+                    out_ref = Some(&matA);
+                    out_size = Some(layer.output_size);
+                }
+                _ => { panic!("Failed to load kernel!"); }
+            }
+        } else if layer.op == "matmul" {
+            match load_module(layer.op) {
+                Ok(module) => {
+                    let kernel = module.get_function(&layer.op)?;
+
+                    #[cfg(feature = "tops_backend")]
+                    let inputShapeA = DeviceBuffer::from_slice(&[layer.input_size.0 as i32, layer.input_size.1 as i32, 1i32, 1i32])?;
+                    #[cfg(feature = "tops_backend")]
+                    let inputShapeB = DeviceBuffer::from_slice(&[layer.input_size.0 as i32, layer.input_size.1 as i32, 1i32, 1i32])?;
+
+                    unsafe {
+                        #[cfg(feature = "tops_backend")]
+                        let result = launch!(kernel<<<(1, 1, 1), (1, 1, 1), 0, stream>>>(
+                            matA.as_device_ptr(),
+                            matB.as_device_ptr(),
+                            matOut.as_device_ptr(),
+                            inputShapeA.as_device_ptr(),
+                            inputShapeB.as_device_ptr()
+                        ));
+
+                        #[cfg(feature = "cuda_backend")]
+                        let result = launch!(kernel<<<(1, 1, 1), (layer.input_size.0 as u32, layer.input_size.1 as u32, 1), 0, stream>>>(
+                            matA.as_device_ptr(),
+                            matB.as_device_ptr(),
+                            matOut.as_device_ptr(),
+                            layer.output_size.0
+                        ));
+
+                        result?;
+                    }
+                    std::mem::swap(&mut matA, &mut matOut);
+                    match layer.weight {
+                        Some(w) => { matB = w;}
+                        _ => { 
+                            // if idx < len - 1 { println!("Failed to get weight!"); break; }
+                        }
+                    }
+                    out_ref = Some(&matA);
+                    out_size = Some(layer.output_size);
+                }
+                _ => { panic!("\nFailed to load kernel (matmul)!"); }
+            }
+        } else if layer.op == "convolution" {
+            match load_module(layer.op) {
+                Ok(module) => {
+                    let kernel = module.get_function(&layer.op)?;
+
+                    #[cfg(feature = "tops_backend")]
+                    let inputShapeA = DeviceBuffer::from_slice(&[layer.input_size.0 as i32, layer.input_size.1 as i32, 1i32, 1i32])?;
+                    #[cfg(feature = "tops_backend")]
+                    let inputShapeB = DeviceBuffer::from_slice(&[K as i32, K as i32, 1i32, 1i32])?;
+                    #[cfg(feature = "tops_backend")]
+                    let channelInfo = DeviceBuffer::from_slice(&[1i32, 1i32, 1i32, 1i32])?;
+
+                    unsafe {
+                        
+                        #[cfg(feature = "tops_backend")]
+                        let result = launch!(kernel<<<(1, 1, 1), (1, 1, 1), 0, stream>>>(
+                            matA.as_device_ptr(),
+                            matB.as_device_ptr(),
+                            matConvOut.as_device_ptr(),
+                            inputShapeA.as_device_ptr(),
+                            inputShapeB.as_device_ptr(),
+                            channelInfo.as_device_ptr()
+                        ));
+
+                        #[cfg(feature = "cuda_backend")]
+                        let result = launch!(kernel<<<(1, 1, 1), (1, 1, 1), 0, stream>>>(
+                            matA.as_device_ptr(),
+                            matB.as_device_ptr(),
+                            matConvOut.as_device_ptr(),
+                            layer.input_size.0 as i32, layer.input_size.1 as i32,
+                            K as i32,
+                            K as i32
+                        ));
+
+                        result?;
+                    }
+
+                    std::mem::swap(&mut matA, &mut matConvOut);
+                    match layer.weight {
+                        Some(w) => { matB = w;}
+                        _ => { 
+                            // if idx < len - 1 { println!("Failed to get weight!"); break; }
+                        }
+                    }
+                    out_ref = Some(&matA);
+                    out_size = Some(layer.output_size);
+
+                }
+                _ => { panic!("\nFailed to load kernel (convolution)!"); }
+            }
+        } else {
+            panic!("Operation {} not supported!", layer.op); 
+        }
+    }
+
+    // Wait asynchronous kernels to finish.
+    stream.synchronize()?;
+
+    //Obtain results and print
+    match out_ref {
+        Some(out) => {
+            let mut out_host = vec![0.0f32; out.len()];
+            out.copy_to(&mut out_host[0..out.len()])?;
+            match out_size {
+                Some(sz) => {
+                    let W = sz.0;
+                    let H = sz.1;
+                    println!("\n\nResults of forward pass******************");
+                    for x in 0..H {
+                        for y in 0..W {
+                            print!("{:.5} ", out_host[x * W + y]);
+                        }
+                        println!("{}", "");
+                    }
+                }
+                _ => { panic!("Unable to obtain compute result!") }
+            }
+
+        }
+        _ => { panic!("Unable to obtain compute result!")}
+    }
+
+    println!("\nLaunched compute kernel successfully.");
+
+    Ok(())
+}
+```

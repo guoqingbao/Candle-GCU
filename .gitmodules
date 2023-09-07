@@ -1,0 +1,10 @@
+[submodule "candle-gcu"]
+	path = candle-gcu
+	url = git@git.enflame.cn:guoqing.bao/candle-gcu.git
+[submodule "ubridge"]
+	path = ubridge
+	url = git@git.enflame.cn:guoqing.bao/ubridge.git
+[submodule "UHHI"]
+	path = UHHI
+	url = git@git.enflame.cn:guoqing.bao/UHHI.git
+
