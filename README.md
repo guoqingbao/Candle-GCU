@@ -36,6 +36,16 @@ __TODO: update status of the following template__
 | #10 | TBA |✅|✅|
 | #11 | TBA |✅|?|
 
+## Installation
+To bootstrap this project, you should run follow cmd first to fetch all the submodules from its source repos:
+```
+git submodule update --init --recursive
+```
+If you want to download the pretrained weights from gitlab LFS (predownloaded by us), you can just run
+```
+// check this utility
+git lfs fetch --all
+```
 
 ## TODO
 __Write corresponding GCU kernerls (written in TopsCC)__
