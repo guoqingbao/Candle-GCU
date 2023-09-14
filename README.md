@@ -1,4 +1,4 @@
-# Candle-GCU Introduction
+# Candle-GCU
 [![discord server](https://dcbadge.vercel.app/api/server/hugging-face-879548962464493619)](https://discord.com/channels/879548962464493619/1136218819447238726)
 [![Latest version](https://img.shields.io/crates/v/candle-core.svg)](https://crates.io/crates/candle-core)
 [![Documentation](https://docs.rs/candle-core/badge.svg)](https://docs.rs/candle-core)
@@ -12,10 +12,16 @@ According to the roadmap of Candle community and project plan, we can expect the
 - **Easy to develop and maintain**: Candle design also simplifies the efforts of AOT operation developping by extracting the sharing operations with micro-kernel mechanism. This design philosophy follows the classical BLIS project and many sota researches such as AMOS, CUTLASS, etc.
 - **Advanced features filling up the roadmap**: The short future can be expected by the community roadmap, which highlights the satellites projects such as candle-transformers (an alternative product to huggingface's signature product: transformers); candle-accelerate (auto parallel framework) may supports the multi-dev and multi-node distributed training also with ease.
 
+## Designed Workflow for supporting Enflame GCU
+Candle + GCU Backend -> Ubridge -> UHHI -> GCU Runtime (http://git.enflame.cn/sw/caps)
+
+![]() <img src="resources/cangle-gcu.png"  width="600">
+
 ## Develop Status
 
 Currently, candle-gcu supports following models in candle-transformers. Notably, this progress couples with the community works
-TODO: update status of following template
+
+__TODO: update status of the following template__
 | LLM Model | Model Intro Link | Supporting GPU | Supporting GCU |
 |--|--|--|--|
 | #1 | TBD |✅|×|
@@ -30,12 +36,9 @@ TODO: update status of following template
 | #10 | TBA |✅|✅|
 | #11 | TBA |✅|?|
 
-## Designed Workflow to supporting Enflame GCU
-Candle + GCU Backend -> Ubridge -> UHHI -> GCU Runtime (http://git.enflame.cn/sw/caps)
-\textit{TODO: add more introduction}
 
 ## TODO
-Write corresponding GCU kernerls (written in TopsCC)
+__Write corresponding GCU kernerls (written in TopsCC)__
 
 ## Sample (LLaMa2 Inference)
 Download LLaMa2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains the following files:
@@ -47,7 +50,7 @@ generation_config.json  pytorch_model.bin.index.json      tokenizer.json
 Run the following command:
 
 ``` shell
-cargo run --example llama -- --local-weights THE_WEIGHT_FOLDER --prompt "Please give me 200 words about deep learning."
+cargo run --example llama --features gcu -- --local-weights THE_WEIGHT_FOLDER --prompt "Please give me 200 words about deep learning."
 ```
 
 **The inference result is not correct because I haven't write all kernels. Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels need to be implemented, i.e., affine, binary, cast, conv, matmul (under testing), fill, indexing, reduce, and unary (finished). The referenceing CUDA kernels can be found in candle-kernels.**
@@ -407,4 +410,132 @@ fn network_test() -> DeviceResult<()> {
 
     Ok(())
 }
+```
+
+### Sample of UnaryOp for cangle-gcu
+
+```C++
+namespace tops {
+template <typename T>
+__device__ __host__ __forceinline__ constexpr int hvlength() {
+  return 128 / sizeof(T);
+}
+
+} // namespace tops
+
+__device__ __forceinline__
+auto get_index() {
+    std::size_t blockIndex = blockIdx.z*(gridDim.x*gridDim.y)
+        + blockIdx.y*gridDim.x + blockIdx.x;
+    std::size_t threadIndex = threadIdx.z*(blockDim.x*blockDim.y)
+        + threadIdx.y*blockDim.x + threadIdx.x;
+    return blockIndex*(blockDim.x*blockDim.y*blockDim.z) + threadIndex;
+}
+
+#define UNARY_OP(TYPE, VT, FN_NAME, FUNC) \
+extern "C" __global__ void FN_NAME( \
+    const size_t numel, \
+    const size_t num_dims, \
+    const size_t *info, \
+    TYPE *inp, \
+    TYPE *out) \
+{ \
+    tops_dte_ctx_t ctx; \
+    tops::dte_scope s(ctx); \
+    std::size_t idx = get_index(); \
+    constexpr std::size_t num_len = tops::hvlength<VT>(); \
+    __valigned__ TYPE buffer1[num_len]; \
+    tops::mdspan buf1(tops::Private, &buffer1, num_len); \
+    tops::mdspan src1(tops::Global, inp + idx * num_len, num_len); \
+    tops::memcpy(ctx, buf1, src1); \
+    const auto &x = tops::vload<VT>(buffer1);  \
+    tops::mdspan dst(tops::Global, out + idx *num_len, num_len); \
+    tops::vstore(FUNC, buffer1);  \
+    tops::memcpy(ctx, dst, buf1); \
+} \
+
+
+template<typename T>
+__device__ __forceinline__ T elu_fwd(T x, T alpha) {
+  if (x > static_cast<T>(0)) {
+    return x;
+  }
+  return alpha * (tops::exp<T>(x) - static_cast<T>(1));
+}
+
+//UnaryOp with additional parameter
+#define UNARY_OP1(TYPE, VT, FN_NAME, FUNC) \
+extern "C" __global__ void FN_NAME( \
+    const size_t numel, \
+    const size_t num_dims, \
+    const size_t *info, \
+    TYPE param, \
+    TYPE *inp, \
+    TYPE *out) \
+{ \
+    tops_dte_ctx_t ctx; \
+    tops::dte_scope s(ctx); \
+    std::size_t idx = get_index(); \
+    constexpr std::size_t num_len = tops::hvlength<VT>(); \
+    __valigned__ TYPE buffer1[num_len]; \
+    tops::mdspan buf1(tops::Private, &buffer1, num_len); \
+    __valigned__ TYPE buffer2[num_len]; \
+    tops::mdspan buf2(tops::Private, &buffer2, num_len); \
+    tops::mdspan src1(tops::Global, inp + idx * num_len, num_len); \
+    tops::memcpy(ctx, buf1, src1); \
+    const auto &x = tops::vload<VT>(buffer1);  \
+    tops::mdspan dst(tops::Global, out + idx *num_len, num_len); \
+    for (int i = 0; i < num_len; i++) { \
+        buffer2[i] = FUNC; \
+    } \
+    tops::memcpy(ctx, dst, buf2); \
+} \
+
+
+
+UNARY_COPY_OP(tops::bfloat, vbfloat, ucopy_bf16)
+UNARY_OP(tops::bfloat, vbfloat, uneg_bf16, tops::vneg<vbfloat>(x))
+UNARY_OP(tops::bfloat, vbfloat, uexp_bf16, tops::vexp<vbfloat>(x))
+UNARY_OP(tops::bfloat, vbfloat, ulog_bf16, tops::vlog<vbfloat>(x))
+UNARY_OP(tops::bfloat, vbfloat, usin_bf16, tops::vsin<vbfloat>(x))
+UNARY_OP(tops::bfloat, vbfloat, ucos_bf16, tops::vcos<vbfloat>(x))
+UNARY_OP(tops::bfloat, vbfloat, uabs_bf16, tops::vabs<vbfloat>(x))
+UNARY_OP(tops::bfloat, vbfloat, usqr_bf16, tops::vmul<vbfloat>(x, x))
+UNARY_OP(tops::bfloat, vbfloat, usqrt_bf16, tops::vsqrt<vbfloat>(x))
+UNARY_OP(tops::bfloat, vbfloat, ugelu_bf16, tops::vgelu<vbfloat>(x))
+UNARY_OP(tops::bfloat, vbfloat, urelu_bf16, tops::vmax<vbfloat>(x, tops::vzero<vbfloat>())) 
+UNARY_OP1(tops::bfloat, vbfloat, uelu_bf16, elu_fwd(x[i], param))
+
+
+
+UNARY_COPY_OP(tops::half, vhalf, ucopy_f16)
+UNARY_OP(tops::half, vhalf, uneg_f16, tops::vneg<vhalf>(x))
+UNARY_OP(tops::half, vhalf, uexp_f16, tops::vexp<vhalf>(x))
+UNARY_OP(tops::half, vhalf, ulog_f16, tops::vlog<vhalf>(x))
+UNARY_OP(tops::half, vhalf, usin_f16, tops::vsin<vhalf>(x))
+UNARY_OP(tops::half, vhalf, ucos_f16, tops::vcos<vhalf>(x))
+UNARY_OP(tops::half, vhalf, uabs_f16, tops::vabs<vhalf>(x))
+UNARY_OP(tops::half, vhalf, usqr_f16, tops::vmul<vhalf>(x, x))
+UNARY_OP(tops::half, vhalf, usqrt_f16, tops::vsqrt<vhalf>(x))
+UNARY_OP(tops::half, vhalf, ugelu_f16, tops::vgelu<vhalf>(x))
+UNARY_OP(tops::half, vhalf, urelu_f16, tops::vmax<vhalf>(x, tops::vzero<vhalf>()))
+UNARY_OP1(tops::half, vhalf, uelu_f16, elu_fwd(x[i], param))
+
+UNARY_COPY_OP(int8_t, vchar, ucopy_i8)
+UNARY_COPY_OP(uint8_t, vuchar, ucopy_u8)
+UNARY_COPY_OP(int32_t, vint, ucopy_i32)
+UNARY_COPY_OP(uint32_t, vuint, ucopy_u32)
+
+UNARY_COPY_OP(float, vfloat, ucopy_f32)
+
+UNARY_OP(float, vfloat, uneg_f32, tops::vneg<vfloat>(x))
+UNARY_OP(float, vfloat, uexp_f32, tops::vexp<vfloat>(x))
+UNARY_OP(float, vfloat, ulog_f32, tops::vlog<vfloat>(x))
+UNARY_OP(float, vfloat, usin_f32, tops::vsin<vfloat>(x))
+UNARY_OP(float, vfloat, ucos_f32, tops::vcos<vfloat>(x))
+UNARY_OP(float, vfloat, uabs_f32, tops::vabs<vfloat>(x))
+UNARY_OP(float, vfloat, usqr_f32, tops::vmul<vfloat>(x, x))
+UNARY_OP(float, vfloat, usqrt_f32, tops::vsqrt<vfloat>(x))
+UNARY_OP(float, vfloat, ugelu_f32, tops::vgelu<vfloat>(x))
+UNARY_OP(float, vfloat, urelu_f32, tops::vmax<vfloat>(x, tops::vzero<vfloat>()))
 ```
