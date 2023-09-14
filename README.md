@@ -7,14 +7,14 @@
 Usability conquers the world! Candle-GPU is a compact high performance inference framework specifically encubating for LLMs to achieving maximal ease of use, compatibility and minimal efforts in developing and maintainness. Technically, Candle-GPU builds upon the open-source project Candle rised by Huggingface, which developed in Rust with a focus on performance of GPU support. By leveraging the efforts of accommodate tons of LLMs with the Candle framework, we focuses on how to achieve zero-cost extensions and abstractions to integrate GCU backend into Candle framework, and consequently adapts to all supported LLMs for high performance execution.
 
 According to the roadmap of Candle community and project plan, we can expect the following highlights delievered by this project:
-- \textbf{Supporting hundreds of LLMs}: huggingface is the de-facto standard and most popular organisation to present LLM facilities to developpers all over the world, the transformers in python has proven its ease of use and portability across hundreds of SOTA LLM models
-- \textbf{Ease of use}: Minimal dev hassles for LLMs, we can write a Llama+Llama2 with approx. 400 LOC only.
-- \textbf{Easy to develop and maintain}: Candle design also simplifies the efforts of AOT operation developping by extracting the sharing operations with micro-kernel mechanism. This design philosophy follows the classical BLIS project and many sota researches such as AMOS, CUTLASS, etc.
-- \textbf{Advanced features filling up the roadmap}: The short future can be expected by the community roadmap, which highlights the satellites projects such as candle-transformers (an alternative product to huggingface's signature product: transformers); candle-accelerate (auto parallel framework) may supports the multi-dev and multi-node distributed training also with ease.
+- **Supporting hundreds of LLMs**: huggingface is the de-facto standard and most popular organisation to present LLM facilities to developpers all over the world, the transformers in python has proven its ease of use and portability across hundreds of SOTA LLM models
+- **Ease of use**: Minimal dev hassles for LLMs, we can write a LLAMA+LLAMA2 with approx. 400 LOC only.
+- **Easy to develop and maintain**: Candle design also simplifies the efforts of AOT operation developping by extracting the sharing operations with micro-kernel mechanism. This design philosophy follows the classical BLIS project and many sota researches such as AMOS, CUTLASS, etc.
+- **Advanced features filling up the roadmap**: The short future can be expected by the community roadmap, which highlights the satellites projects such as candle-transformers (an alternative product to huggingface's signature product: transformers); candle-accelerate (auto parallel framework) may supports the multi-dev and multi-node distributed training also with ease.
 
 ## Develop Status
 
-Currently, candle-gcu supports following models in cancle-transformers. Notably, this progress couples with the community works
+Currently, candle-gcu supports following models in candle-transformers. Notably, this progress couples with the community works
 TODO: update status of following template
 | LLM Model | Model Intro Link | Supporting GPU | Supporting GCU |
 |--|--|--|--|
