@@ -1,10 +1,13 @@
 [submodule "candle-gcu"]
 	path = candle-gcu
 	url = git@git.enflame.cn:guoqing.bao/candle-gcu.git
+	ignore = dirty
 [submodule "ubridge"]
 	path = ubridge
 	url = git@git.enflame.cn:guoqing.bao/ubridge.git
+	ignore = dirty
 [submodule "UHHI"]
 	path = UHHI
 	url = git@git.enflame.cn:guoqing.bao/UHHI.git
+	ignore = dirty
 
