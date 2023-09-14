@@ -1,16 +1,38 @@
-# Candle-GCU
+# Candle-GCU Introduction
 [![discord server](https://dcbadge.vercel.app/api/server/hugging-face-879548962464493619)](https://discord.com/channels/879548962464493619/1136218819447238726)
 [![Latest version](https://img.shields.io/crates/v/candle-core.svg)](https://crates.io/crates/candle-core)
 [![Documentation](https://docs.rs/candle-core/badge.svg)](https://docs.rs/candle-core)
 ![License](https://img.shields.io/crates/l/candle-core.svg)
 
-Candle is a minimalist ML framework (developed by HuggingFace) for Rust with a focus on performance (including GPU support) 
-and ease of use. 
+Usability conquers the world! Candle-GPU is a compact high performance inference framework specifically encubating for LLMs to achieving maximal ease of use, compatibility and minimal efforts in developing and maintainness. Technically, Candle-GPU builds upon the open-source project Candle rised by Huggingface, which developed in Rust with a focus on performance of GPU support. By leveraging the efforts of accommodate tons of LLMs with the Candle framework, we focuses on how to achieve zero-cost extensions and abstractions to integrate GCU backend into Candle framework, and consequently adapts to all supported LLMs for high performance execution.
 
-This project tries to intergrate GCU backend to Candle.
+According to the roadmap of Candle community and project plan, we can expect the following highlights delievered by this project:
+- \textbf{Supporting hundreds of LLMs}: huggingface is the de-facto standard and most popular organisation to present LLM facilities to developpers all over the world, the transformers in python has proven its ease of use and portability across hundreds of SOTA LLM models
+- \textbf{Ease of use}: Minimal dev hassles for LLMs, we can write a Llama+Llama2 with approx. 400 LOC only.
+- \textbf{Easy to develop and maintain}: Candle design also simplifies the efforts of AOT operation developping by extracting the sharing operations with micro-kernel mechanism. This design philosophy follows the classical BLIS project and many sota researches such as AMOS, CUTLASS, etc.
+- \textbf{Advanced features filling up the roadmap}: The short future can be expected by the community roadmap, which highlights the satellites projects such as candle-transformers (an alternative product to huggingface's signature product: transformers); candle-accelerate (auto parallel framework) may supports the multi-dev and multi-node distributed training also with ease.
 
-## Designed Workflow
+## Develop Status
+
+Currently, candle-gcu supports following models in cancle-transformers. Notably, this progress couples with the community works
+TODO: update status of following template
+| LLM Model | Model Intro Link | Supporting GPU | Supporting GCU |
+|--|--|--|--|
+| #1 | TBD |✅|×|
+| #2 | TBD |✅|×|
+| #3 | TBD |✅|×|
+| #4 | TBD |✅|×| 
+| #5 | TBD |✅|✅|
+| #6 | TBD |✅|✅|
+| #7 | TBA |?|?|
+| #8 | TBA |?|?|
+| #9 | TBA |?|?|
+| #10 | TBA |✅|✅|
+| #11 | TBA |✅|?|
+
+## Designed Workflow to supporting Enflame GCU
 Candle + GCU Backend -> Ubridge -> UHHI -> GCU Runtime (http://git.enflame.cn/sw/caps)
+\textit{TODO: add more introduction}
 
 ## TODO
 Write corresponding GCU kernerls (written in TopsCC)
