@@ -4,13 +4,20 @@
 [![Documentation](https://docs.rs/candle-core/badge.svg)](https://docs.rs/candle-core)
 ![License](https://img.shields.io/crates/l/candle-core.svg)
 
-Usability conquers the world! Candle-GPU is a compact high performance inference framework specifically encubating for LLMs to achieving maximal ease of use, compatibility and minimal efforts in developing and maintainness. Technically, Candle-GPU builds upon the open-source project Candle rised by Huggingface, which developed in Rust with a focus on performance of GPU support. By leveraging the efforts of accommodate tons of LLMs with the Candle framework, we focuses on how to achieve zero-cost extensions and abstractions to integrate GCU backend into Candle framework, and consequently adapts to all supported LLMs for high performance execution.
+Candle-GCU is designed as a compact, high-performance deep learning framework and is meticulously incubated for Language Model Models (LLMs) to prioritize ease of use, compatibility, and the minimization of development and maintenance efforts. Our technical approach is grounded in the foundation laid by the open-source Candle project, spearheaded by Huggingface. Notably, Candle-GCU is developed in Rust, with a deliberate focus on leveraging Enflame GCU capabilities for optimal performance.
 
-According to the roadmap of Candle community and project plan, we can expect the following highlights delievered by this project:
-- **Supporting hundreds of LLMs**: huggingface is the de-facto standard and most popular organisation to present LLM facilities to developpers all over the world, the transformers in python has proven its ease of use and portability across hundreds of SOTA LLM models
-- **Ease of use**: Minimal dev hassles for LLMs, we can write a LLAMA+LLAMA2 with approx. 400 LOC only.
-- **Easy to develop and maintain**: Candle design also simplifies the efforts of AOT operation developping by extracting the sharing operations with micro-kernel mechanism. This design philosophy follows the classical BLIS project and many sota researches such as AMOS, CUTLASS, etc.
-- **Advanced features filling up the roadmap**: The short future can be expected by the community roadmap, which highlights the satellites projects such as candle-transformers (an alternative product to huggingface's signature product: transformers); candle-accelerate (auto parallel framework) may supports the multi-dev and multi-node distributed training also with ease.
+At its core, Candle-GCU seeks to synergize with the broader LLM landscape by seamlessly accommodating a multitude of LLMs within the Candle framework. Central to our vision is the pursuit of zero-cost extensions and abstracts, facilitating the seamless integration of the GCU backend into the Candle framework. This adaptation is envisioned to empower all supported LLMs to achieve high-performance execution standards.
+
+In alignment with the roadmap set forth by the Candle community and our project plan, several noteworthy deliverables are anticipated:
+
+1. **Supporting Hundreds of LLMs**: Huggingface stands as the de facto standard and the foremost global repository for LLM resources. Their Transformers library, written in Python, has firmly established itself as a testament to ease of use and portability across an extensive array of state-of-the-art LLM models.
+
+2. **Streamlined Usability**: Candle-GCU aims to minimize development complexities for LLMs. Remarkably, it enables the creation of a LLAMA+LLAMA2 model with a mere 400 lines of code, underscoring its commitment to user-friendly development practices.
+
+3. **Development and Maintenance Simplification**: The Candle design philosophy strategically simplifies the complexities associated with Ahead-of-Time (AOT) operation development. This simplification is achieved through the judicious extraction of shared operations using a micro-kernel mechanism. Drawing inspiration from classical projects like BLIS and contemporary research endeavors such as AMOS and CUTLASS, this approach ensures efficient and maintainable code.
+
+4. **Advanced Roadmap Features**: Looking ahead, the community roadmap envisions a host of advanced features. These include satellite projects like 'candle-transformers,' which serves as a noteworthy alternative to Huggingface's 'Transformers' library. Additionally, 'candle-accelerate,' an auto-parallel framework, is poised to facilitate multi-device and multi-node distributed training with exceptional ease.
+
 
 ## Designed Workflow for supporting Enflame GCU
 Candle + GCU Backend -> Ubridge -> UHHI -> GCU Runtime (http://git.enflame.cn/sw/caps)
