@@ -36,12 +36,34 @@ __TODO: update status of the following template__
 | #10 | TBA |✅|✅|
 | #11 | TBA |✅|?|
 
-## Installation
+## Installation of dependencies 
 To bootstrap this project, you should run follow cmd first to fetch all the submodules from its source repos:
+
+Install GCU driver (2.7.1+)
+
+```shell
+sudo enflame-x86_64-gcc-2.4.7.run
 ```
+
+Install topscc into /user/lib (must)
+
+```shell
+sudo topscc_0.7.0-1_amd64.run /usr/lib
+```
+
+Install Rust and Cargo
+
+```shell
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+Update submodules (candle-gcu, ubridge, UHHI)
+
+```shell
 git submodule update --init --recursive
 ```
-If you want to download the pretrained weights from gitlab LFS (predownloaded by us), you can just run
+
+If you want to download the pretrained weights (for LLaMa2) from gitlab LFS (predownloaded by us), you can just run
 ```
 // check this utility
 git lfs fetch --all
@@ -423,7 +445,7 @@ fn network_test() -> DeviceResult<()> {
 }
 ```
 
-### Sample of UnaryOp for cangle-gcu
+### Sample of UnaryOp kernel for cangle-gcu
 
 ```C++
 namespace tops {
