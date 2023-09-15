@@ -46,16 +46,15 @@ __TODO: update status of the following template__
 ## Installation of dependencies 
 To bootstrap this project, you should run follow cmd first to fetch all the submodules from its source repos:
 
-Install GCU driver (2.7.1+)
+Install GCU driver (2.7.1+), TopsCC and Runtime
 
 ```shell
 sudo enflame-x86_64-gcc-2.4.7.run
-```
 
-Install topscc into /user/lib (must)
-
-```shell
+#Install topscc into /user/lib (must)
 sudo topscc_0.7.0-1_amd64.run /usr/lib
+
+sudo dpkg -i topsruntime_2.4.7-1_amd64.deb
 ```
 
 Install Rust and Cargo
@@ -454,7 +453,7 @@ fn network_test() -> DeviceResult<()> {
 
 ### Sample of UnaryOp kernel for cangle-gcu
 
-```C++
+``` c++
 namespace tops {
 template <typename T>
 __device__ __host__ __forceinline__ constexpr int hvlength() {
