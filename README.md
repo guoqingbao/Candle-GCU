@@ -29,19 +29,19 @@ Candle + GCU Backend -> Ubridge -> UHHI -> GCU Runtime (http://git.enflame.cn/sw
 Currently, candle-gcu supports following models in candle-transformers. Notably, this progress couples with the community works
 
 __TODO: update status of the following template__
-| LLM Model | Model Intro Link | Supporting GPU | Supporting GCU |
-|--|--|--|--|
-| #1 | TBD |✅|×|
-| #2 | TBD |✅|×|
-| #3 | TBD |✅|×|
-| #4 | TBD |✅|×| 
-| #5 | TBD |✅|✅|
-| #6 | TBD |✅|✅|
-| #7 | TBA |?|?|
-| #8 | TBA |?|?|
-| #9 | TBA |?|?|
-| #10 | TBA |✅|✅|
-| #11 | TBA |✅|?|
+| LLM Model ID | LLM Model | Supporting GPU | Supporting PAVO | Supporting Dorado |
+|--|--|--|--|--|
+| #1 | LLAMA |✅|✅|x|
+| #2 | LLAMA2 |✅|✅|x|
+| #3 | BigCode |✅|✅|x|
+| #4 | TBD |✅|✅|x| 
+| #5 | TBD |✅|✅|x|
+| #6 | TBD |✅|✅|x|
+| #7 | TBA |✅|✅|x|
+| #8 | TBA |✅|✅|x|
+| #9 | TBA |✅|✅|x|
+| #10 | TBA |✅|✅|x|
+| #11 | TBA |✅|✅|x|
 
 ## Installation of dependencies 
 To bootstrap this project, you should run follow cmd first to fetch all the submodules from its source repos:
