@@ -60,6 +60,7 @@ generation_config.json  pytorch_model.bin.index.json      tokenizer.json
 Run the following command:
 
 ``` shell
+cd candle-gcu
 cargo run --example llama --features gcu -- --local-weights THE_WEIGHT_FOLDER --prompt "Please give me 200 words about deep learning."
 ```
 
