@@ -1,9 +1,16 @@
 {
     "rust-analyzer.linkedProjects": [
-        "./candle-gcu/candle-core/Cargo.toml",
-        "./UHHI/Cargo.toml",
-        "./ubridge/Cargo.toml",
-        "./candle-gcu/candle-nn/Cargo.toml",
-        "./candle-gcu/candle-examples/Cargo.toml",
-    ]
+        "candle-gcu/candle-core/Cargo.toml",
+        "UHHI/Cargo.toml",
+        "ubridge/Cargo.toml",
+        "candle-gcu/candle-nn/Cargo.toml",
+        "candle-gcu/candle-examples/Cargo.toml",
+    ],
+    "rust-analyzer.showUnlinkedFileNotification": false,
+    "rust-analyzer.cargo.features": [
+        "gcu"
+    ],
+    "files.associations": {
+        "random": "cpp"
+    },
 }
