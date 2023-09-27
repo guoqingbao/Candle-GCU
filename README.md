@@ -75,8 +75,30 @@ If you want to download the pretrained weights (for LLaMa2) from gitlab LFS (pre
 git lfs fetch --all
 ```
 
-## TODO
-__Write corresponding GCU kernerls (written in TopsCC)__
+## $\textcolor{green}{\text{TODO}}$
+__Write the following GCU kernerls defined in Candle (written in TopsCC, refer to candle-kernels)__
+
+**Unary**: $\textcolor{red}{\text{copy}}$, neg, recip, $\textcolor{red}{\text{exp}}$, log, $\textcolor{red}{\text{sin}}$, $\textcolor{red}{\text{cos}}$, abs, $\textcolor{red}{\text{sqr}}$, $\textcolor{red}{\text{sqrt}}$, gelu, relu, elu
+
+**Ternary**: $\textcolor{red}{\text{where}}$
+
+**Reduce**: sum, fast_min, fast_max, fast_argmin, fast_argmax, $\textcolor{red}{\text{fast\_sum}}$
+
+**Indexing**: $\textcolor{red}{\text{is}}$, gather, ia, sa
+
+**Fill**: fill
+
+**Conv**: conv1d, conv2d, conv_transpose2d, avg_pool2d, max_pool2d, unsample_nearest2d
+
+**Cast**: $\textcolor{red}{\text{cast}}$
+
+**Binary**: $\textcolor{red}{\text{add, div, mul, sub,}}$ minimum, maximum, ne, lt, le, gt, ge
+
+**Affine**: $\textcolor{red}{\text{affine}}$
+
+**Matmul**: $\textcolor{red}{\text{matmul}}$/dot
+
+$\textcolor{green}{\text{Note}}$: $\textcolor{red}{\text{micro-kernels in red for large language models}}$, e.g., llama, chatglm, falcon, etc.
 
 ## Sample (LLaMa2 Inference)
 Download LLaMa2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains the following files:
