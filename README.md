@@ -600,3 +600,98 @@ UNARY_OP(float, vfloat, usqrt_f32, tops::vsqrt<vfloat>(x))
 UNARY_OP(float, vfloat, ugelu_f32, tops::vgelu<vfloat>(x))
 UNARY_OP(float, vfloat, urelu_f32, tops::vmax<vfloat>(x, tops::vzero<vfloat>()))
 ```
+
+### Sample of Dot/Matmul kernel (TopsCC + Intrinsics) for cangle-gcu
+
+``` c++
+//m can be any size, k is divisible by tile_size
+template <typename T, typename VT, FP dot_intrinsic>
+__device__ void dot(
+  T *lhs,
+  T *rhs,
+  T *out,
+  int m,
+  int k,
+  int n) {
+  constexpr int vlen = tops::hvlength<VT>();
+  constexpr int tile_size = 1 * vlen;
+
+  int blockId = blockIdx.y * gridDim.x + blockIdx.x;
+  int threadId = blockId * blockDim.x + threadIdx.x;
+
+  int lstride = tile_size;
+  if (m < tile_size) { //for small m
+    lstride = m;
+  }
+
+  int blockIndex = threadId / (n / tile_size);
+  int threadIndex = threadId % (n / tile_size);
+//   printf("blockIndex %d, threadIndex %d", blockIndex, threadIndex);
+
+  __valigned__ T lhs_l1[lstride * tile_size];
+  __valigned__ T rhs_l1[tile_size * tile_size];
+
+  __valigned__ T out_l1[lstride * tile_size];
+  __valigned__ T temp[lstride * tile_size];
+
+  tops::mdspan out_l1_(out_l1, lstride, tile_size);
+
+  tops::mdspan srcl_l1(lhs_l1, lstride, tile_size);
+  tops::mdspan srcr_l1(rhs_l1, tile_size, tile_size);
+
+  tops::mdspan srcl_l3(lhs, m, k);
+  tops::mdspan srcr_l3(rhs, k, n);
+  tops::mdspan dst_l3(out, m, n);
+
+  tops_dte_ctx_t ctx;   //L1-L3
+  tops::dte_scope s(ctx);
+
+  int idx_y = blockIndex * lstride;
+  int idx_x = threadIndex * tile_size;
+
+  if (idx_y < m) { //parallel
+    int offsets_l[] = {idx_y, 0};
+    if (idx_x < n) { //parallel
+      tops::memset<T>(ctx, out_l1_, T(0)); //accumulation buffer
+      tops::mdspan dst_l1(out_l1, lstride, tile_size);
+      int offsets_r[] = {0, idx_x};
+
+      for (int i = 0; i < k/tile_size; i++) { //k must be divisible by tile_size
+        offsets_l[1] = i * tile_size;
+        tops::slice(ctx, srcl_l1, srcl_l3, offsets_l); //slicing the left operand
+        offsets_r[0] = i * tile_size;
+        tops::slice(ctx, srcr_l1, srcr_l3, offsets_r);  //slicing the right operand
+        // //dot_no_transpose
+        auto lhs_address = (__attribute__((address_space(5))) T *)(lhs_l1);
+        auto rhs_address = (__attribute__((address_space(5))) T *)(rhs_l1);
+        auto out_address = (__attribute__((address_space(5))) T *)(temp);
+
+        //call intrinsic core (two pieces of buffers, compute on L1)
+        dot_intrinsic(reinterpret_cast<long long>(lhs_address),
+                       reinterpret_cast<long long>(rhs_address),
+                       reinterpret_cast<long long>(out_address),
+                       lstride, //lstride can be any size <= tile_size
+                       tile_size,
+                       tile_size,
+                       0,
+                       1);
+
+        for (auto i = 0; i < lstride * tile_size; i++) { //result accumulation
+          out_l1[i] += temp[i];
+        }
+      }
+      //L1->L3
+      int offsets_o[] = {idx_y, idx_x};
+      tops::deslice(ctx, dst_l3, dst_l1, offsets_o); //back to output buffer
+    } 
+  } 
+}
+
+
+extern "C" __global__ void dotllm_f16(const size_t m, const size_t k, const size_t n, tops::half *matA, tops::half *matB, tops::half* out)
+{
+    dot<tops::half, vhalf, kernel_dot_m_le256_fp16>(matA, matB, out, m, k, n);
+
+}
+
+```
