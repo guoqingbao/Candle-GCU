@@ -116,6 +116,31 @@ cargo run --example llama --features gcu -- --local-weights THE_WEIGHT_FOLDER --
 
 **The inference result is not correct because I haven't write all kernels. Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels need to be implemented, i.e., affine, binary, cast, conv, matmul (under testing), fill, indexing, reduce, and unary (finished). The referenceing CUDA kernels can be found in candle-kernels.**
 
+## End-to-end debuging candle-gcu models + CAPS + GCU kernels (Rust/C++)
+Candle-gcu enables end-to-end debuging for Rust and C++ code in a single environment (VS code).
+
+1) Install LLDB debugger (the installer option will prompt during your first view of this project);
+   
+2) Install clangd for C++ code completion;
+   
+3) Install rust-analyzer for Rust code completion;
+   
+4) Build your CAPS project as debug mode;
+
+5) In "UHHI/tops_backend/tops_raw/build.rs", revise the linked library to your CAPS build path;
+
+6) In "candle-gcu/.cargo/config.toml", revise rpath search path to your CAPS build path;
+
+7) Build your debug version of candle-gcu by executing "cargo build --example llama --features gcu";
+
+8) Revise the .vscode/launch.json and set your own weight path (refer resources/weight_path_settings.png);
+
+9)  Navigate to "candle-gcu/candle-examples/examples/llama/main.rs", there is a "debug" option in the main function, click the "debug";
+
+10) Add breakpoints in candle-gcu (candle model or candle-core/gcu-backend/ubridge, etc.) and CAPS source code, e.g., launchkernel.
+
+![]() <img src="resources/cross-language-debug.png"  width="900">
+
 ## Get started
 
 ### Sample GCU Backend Impl for Candle
