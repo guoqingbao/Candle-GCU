@@ -90,7 +90,7 @@ __Write the following unfinished GCU kernerls defined in Candle (written in Tops
 
 **Conv**: conv1d, conv2d, conv_transpose2d, avg_pool2d, max_pool2d, unsample_nearest2d
 
-**Cast**: $\textcolor{red}{\text{cast}}$
+**Cast**✅: $\textcolor{red}{\text{cast}}$
 
 **Binary** ✅: $\textcolor{red}{\text{add, div, mul, sub,}}$ minimum, maximum, ne, lt, le, gt, ge
 
