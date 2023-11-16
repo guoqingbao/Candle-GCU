@@ -46,15 +46,12 @@ __TODO: update status of the following template__
 ## Installation of dependencies 
 To bootstrap this project, you should run follow cmd first to fetch all the submodules from its source repos:
 
-Install GCU driver (2.7.1+), TopsCC and Runtime
+Install GCU driver (2.7.1+), TopsCC and Runtime (TopsPlatform 0.8.3+)
+
+Run TopsPlatform installation, and select driver installation outside docker and topscc & runtime installation inside docker.
 
 ```shell
-sudo enflame-x86_64-gcc-2.4.7.run
-
-#Install topscc into /user/lib (must)
-sudo topscc_0.7.0-1_amd64.run /usr/lib
-
-sudo dpkg -i topsruntime_2.4.7-1_amd64.deb
+sudo TopsPlatform_0.8.0.3_deb_amd64.run 
 ```
 
 Install Rust and Cargo
@@ -67,12 +64,6 @@ Update submodules (candle-gcu, ubridge, UHHI)
 
 ```shell
 git submodule update --init --recursive
-```
-
-If you want to download the pretrained weights (for LLaMa2) from gitlab LFS (predownloaded by us), you can just run
-```
-// check this utility
-git lfs fetch --all
 ```
 
 ## $\textcolor{green}{\text{TODO}}$
@@ -109,14 +100,14 @@ config.json             model-00001-of-00002.safetensors  pytorch_model-00001-of
 convert.py              model-00002-of-00002.safetensors  pytorch_model-00002-of-00002.bin  tokenizer_config.json    tosafetensor.py
 generation_config.json  pytorch_model.bin.index.json      tokenizer.json
 
-Run the following command:
+Replace **THE_WEIGHT_FOLDER** with your weight folder and run the following command on Scorpio:
 
 ``` shell
 cd candle-gcu
-cargo run --example llama --features gcu -- --local-weights THE_WEIGHT_FOLDER --prompt "Please give me 200 words about deep learning."
+cargo run --example llama --features gcu,scorpio -- --local-weights THE_WEIGHT_FOLDER --prompt "Please give me 200 words about deep learning."
 ```
 
-**The inference result is not correct because I haven't write all kernels. Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels need to be implemented, i.e., affine, binary, cast, conv, matmul (under testing), fill, indexing, reduce, and unary (finished). The referenceing CUDA kernels can be found in candle-kernels.**
+**The inference result is not correct because I haven't write all kernels. Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels need to be implemented, i.e., affine, binary, cast, conv, matmul, fill, indexing, reduce, and unary. The referenceing CUDA kernels can be found in candle-kernels.**
 
 ## End-to-end debuging candle-gcu models + CAPS + GCU kernels (Rust/C++)
 Candle-gcu enables end-to-end debuging for Rust and C++ code in a single environment (VS code).
@@ -158,17 +149,13 @@ impl<U: UnaryOpT> Map1 for U {
         layout: &Layout,
     ) -> Result<GcuSlice<T>> {
         let shape = layout.shape();
-        let dims = shape.dims();
         let el_count = shape.elem_count();
         let cfg = GcuLaunchConfig::for_num_elems(el_count as u32);
-        let ds = dev.htod_copy([dims, layout.stride()].concat()).w()?; //data layout buffer
-        let src = &src.slice(layout.start_offset()..); //input slice
-        let func = dev.get_or_load_func(&kernel_name::<T>(U::KERNEL), ubridge::UNARY)?; //load GCU kernel
-        // SAFETY: Set later by running the kernel.
-        let out = dev.alloc::<T>(el_count).w()?; //output buffer
-        let params = (el_count, dims.len(), &ds, src, &out); //launch kernel params
-        // SAFETY: ffi.
-        unsafe { func.launch(cfg, params) }.w()?; //kernel launch
+        let src = &src.slice(layout.start_offset()..);
+        let func = dev.get_or_load_func(&kernel_name::<T>(U::KERNEL), ubridge::UNARY)?;
+        let out = dev.alloc::<T>(el_count).w()?;
+        let params = (el_count, src, &out);
+        unsafe { func.launch(cfg, params) }.w()?;
         Ok(out)
     }
 }
@@ -197,239 +184,352 @@ GCU Alloc Function: device alloc (Candle) -> alloc (ubridge) -> DeviceBuffer uni
     }
 ```
 
-CPU Input Buffers -> GCU Compute -> CPU Result Buffers
+GCU GEMM Compute with Tuner (fp16)
 
 ``` rust
-match DeviceExecutor::get_gcu_executor(0) {
-    Some(gcu_executor) => {
+            (GcuStorageSlice::F16(lhs), GcuStorageSlice::F16(rhs)) => {
+                let lhs = &lhs.slice(lhs_l.start_offset()..); //slicing left operand
+                let rhs = &rhs.slice(rhs_l.start_offset()..); //slicing right operand
+                let out = dev.alloc::<f16>(elem_count).w()?; //output buffer
+                let bias = dev.alloc::<f16>(n).w()?; //this will be removed later.
+                //gemm tuner
+                let info = AtenGemmInfo::new(TopsopDataType::TopSopDataFp16, if m==1 {b} else {m}, m, k, n);
+                let mut tune = AtenGemmTune::default();
+                let tuner = AtenGemmTuner::new();
+                tuner.tuner(&info, &mut tune);
+                let param = GEMM_OP_PARAS::new(&info, &tune);//tuning results
 
-        // let rawptr = lhs.as_ptr().cast::<f32>();
-        // let ltensor = DeviceTensor::from_pointer(rawptr, m * k, vec![b, m, k]).unwrap();
-        let ltensor = DeviceTensor::from_vec_shape(&vec![1.0f32; b*m*k], vec![b, m, k]).unwrap();
-        // let rawptr = rhs.as_ptr().cast::<f32>();
-        // let rtensor = DeviceTensor::from_pointer(rawptr, k * n, vec![b, k, n]).unwrap();
-        let rtensor = DeviceTensor::from_vec_shape(&vec![1.0f32; b*k*n], vec![b, k, n]).unwrap();
-        let mut dst: Vec<f32> = Vec::with_capacity(b * m * n);
-        unsafe { dst.set_len(b * m * n); }
-        match gcu_executor.transposed_matmul_owned(&ltensor, &rtensor, true) {
-            Ok(tensor) => {
-                match tensor.to_cpu(&mut dst) {
-                    Ok(_) => {
-                        let ret = cast_ref::<Vec<f32>, Vec<T>>(&dst).unwrap();
-                        return Ok(ret.to_owned());
-                    }
-                    _=> { panic!("Unable to copy results back to cpu!");}
-                }
+                let kernel_name = "gemm_f16".to_string();
+                let func = dev.get_or_load_func(&kernel_name, ubridge::GEMM)?;
+
+                let cfg = GcuLaunchConfig::for_gemm();
+                let params = (lhs, rhs, &out, &bias, //kernel launch params
+                    param.input_dtype, b, m, k, n,
+                    param.lhs_multicore, param.rhs_multicore, param.batch_multicore,
+                    param.lhs_transpose, param.rhs_transpose,
+                    param.alpha, param.beta, param.addmm_beta, param.bias,
+                    param.sip_m, param.sip_k, param.sip_n
+                );
+                unsafe { func.launch(cfg, params) }.w()?; //launch kernel compute
+                GcuStorageSlice::F16(out) //return results
             }
-            _=> {}
-        }
-    }
-    _=> {  }
-}
 ```
 
 ### Sample usage of UHHI
 
 Example of UHAL/UHHI for neural network forward pass (on NVidia GPU & Enflame GCU)
 
-Enflame GCU: Install Enflame Driver 2.4.1+ and CAPS (TopsCC, TopsRuntime)
+Enflame GCU: Install TopsPlatform 0.8.3+ (Driver, TopsCC, TopsRuntime)
 
 ``` rust
+//Example of UHAL for neural network forward pass (on NV GPU & Enflame GCU)
 use cust_core::DeviceCopy;
 use std::collections::HashMap;
 
-//Import UHAL for common computing interface
-use uhal::launch;
-use uhal::error::{DeviceResult};
-use uhal::{DriverLibraryTrait};
-use uhal::module::{ModuleTrait};
-use uhal::memory::{DeviceBufferTrait};
-use uhal::stream::{StreamTrait, StreamFlags};
+//Import UHAL for common computing interfaces
 
+use uhal::error::DeviceResult;
+use uhal::launch;
+use uhal::memory::DeviceBufferTrait;
+use uhal::module::ModuleTrait;
+use uhal::stream::{StreamFlags, StreamTrait};
+use uhal::DriverLibraryTrait;
 //Tops backend
-#[cfg(feature = "tops_backend")]
-use tops_backend as tops;
-#[cfg(feature = "tops_backend")]
-use tops::memory::TopsDeviceBuffer as DeviceBuffer;
 #[cfg(feature = "tops_backend")]
 use tops::memory::CopyDestination;
 #[cfg(feature = "tops_backend")]
-use tops::stream::TopsStream as Stream;
+use tops::memory::TopsDeviceBuffer as DeviceBuffer;
 #[cfg(feature = "tops_backend")]
 use tops::module::TopsModule as Module;
 #[cfg(feature = "tops_backend")]
+use tops::stream::TopsStream as Stream;
+#[cfg(feature = "tops_backend")]
 use tops::TopsApi as Api;
+#[cfg(feature = "tops_backend")]
+use tops_backend as tops;
 
 //Cuda backend
 #[cfg(feature = "cuda_backend")]
-use cuda_backend as cuda;
+use cuda::memory::CopyDestination;
 #[cfg(feature = "cuda_backend")]
 use cuda::memory::CuDeviceBuffer as DeviceBuffer;
 #[cfg(feature = "cuda_backend")]
-use cuda::memory::CopyDestination;
+use cuda::module::CuModule as Module;
 #[cfg(feature = "cuda_backend")]
 use cuda::stream::CuStream as Stream;
 #[cfg(feature = "cuda_backend")]
-use cuda::module::CuModule as Module;
-#[cfg(feature = "cuda_backend")]
 use cuda::CuApi as Api;
+#[cfg(feature = "cuda_backend")]
+use cuda_backend as cuda;
 
-//Load kernel module
-fn load_module<'a>(name : &str) -> DeviceResult<Module>{
+use crate::device_executor::DeviceExecutor;
+
+fn load_module<'a>(name: &str) -> DeviceResult<Module> {
+    #[cfg(not(feature = "scorpio"))]
     #[cfg(feature = "tops_backend")]
-    let ptx = format!("{}/kernels/{}.o", env!("CARGO_MANIFEST_DIR"), name).to_string();
+    let ptx = format!("{}/kernels/legacy/pavo/{}.topsfb", env!("CARGO_MANIFEST_DIR"), name).to_string();
+
+    #[cfg(feature = "scorpio")]
+    let ptx = format!("{}/kernels/legacy/scorpio/{}.topsfb", env!("CARGO_MANIFEST_DIR"), name).to_string();
 
     #[cfg(feature = "cuda_backend")]
-    let ptx = format!("{}/kernels/{}.ptx", env!("CARGO_MANIFEST_DIR"), name).to_string();
+    let ptx = format!("{}/kernels/gpu/{}.ptx", env!("CARGO_MANIFEST_DIR"), name).to_string();
 
     Module::from_file(&ptx)
 }
 
-//Neural network layer definition
 struct Layer<'a, T: DeviceCopy> {
-    op : &'a str,
-    weight : Option<DeviceBuffer<T>>,
-    input_size : (usize, usize),
-    output_size : (usize, usize),
-    out_ref : Option<&'a DeviceBuffer<T>>
+    op: &'a str,
+    weight: Option<&'a DeviceBuffer<T>>,
+    input_size: (usize, usize),
+    output_size: (usize, usize),
+    out_ref: Option<&'a DeviceBuffer<T>>,
+}
+pub fn get_block_grid(shape1: usize, shape0: usize) -> (usize, usize, usize) {
+    let grid_a: usize = (shape1 + 16 - 1) / 16;
+    let grid_b: usize = (shape0 + 16 - 1) / 16;
+    return (16, grid_a, grid_b);
 }
 
 //A 6-layer neural network forward pass
 //Unified interface (UHAL) for CUDA and Tops backend
 #[allow(non_snake_case)]
-fn network_test() -> DeviceResult<()> {
+pub fn network_test() -> DeviceResult<()> {
     let _device = Api::quick_init(0)?;
-
-    //The entire workflow computed on this stream without copy back & forth between GPU/GCU memory and host memory.
     let stream = Stream::new(StreamFlags::NON_BLOCKING, None)?;
-
-    const N : usize = 16;
-    const K : usize = 3;
+    const N: usize = 16;
+    const K: usize = 3;
+    let w1 = DeviceBuffer::from_slice(&vec![0.01f32; N * N])?;
+    let w2 = DeviceBuffer::from_slice(&vec![0.02f32; N * N])?;
+    let w3 = DeviceBuffer::from_slice(&vec![0.03f32; N * N])?;
+    let w4 = DeviceBuffer::from_slice(&vec![0.04f32; N * N])?;
+    let w5 = DeviceBuffer::from_slice(&vec![0.05f32; N * N])?;
 
     //Neural network layers: matmul(tanh act) -> matmul(relu act) -> matmul(tanh act) -> convolution(3x3 kernel, tanh act) -> matmul(tanh act) -> matmul(leaky act)
     let layers = vec![
-        Layer::<f32> {op : "matmul", weight: Some(DeviceBuffer::from_slice(&[0.01f32; N * N])?), input_size : (N, N), output_size : (N, N), out_ref : None}, //weight is N x N matric for next layer
-        Layer::<f32> {op : "tanh", weight : None, input_size : (N, N), output_size : (N, N), out_ref : None}, //out N x N
-
-        Layer::<f32> {op : "matmul", weight: Some(DeviceBuffer::from_slice(&[0.02f32; N * N])?), input_size : (N, N), output_size : (N, N), out_ref : None}, //weight is N x N matric for next layer
-        Layer::<f32> {op : "relu", weight : None, input_size : (N, N), output_size : (N, N), out_ref : None}, //out N x N
-
-        Layer::<f32> {op : "matmul", weight: Some(DeviceBuffer::from_slice(&[0.5f32; K * K])?), input_size : (N, N), output_size : (N, N), out_ref : None}, //weight is convolution kernel for next layer
-        Layer::<f32> {op : "tanh", weight : None, input_size : (N, N), output_size : (N, N), out_ref : None}, //out N x N
-
-        Layer::<f32> {op : "convolution", weight: Some(DeviceBuffer::from_slice(&[0.2f32; (N - K + 1) * (N - K + 1)])?), input_size : (N, N), output_size : (N - K + 1, N - K + 1), out_ref : None}, //weight is (N - K + 1) * (N - K + 1) matric for next layer
-        Layer::<f32> {op : "tanh", weight : None, input_size : (N - K + 1, N - K + 1), output_size : (N - K + 1, N - K + 1), out_ref : None},  //out (N - K + 1) x (N - K + 1)
-        
-        Layer::<f32> {op : "matmul", weight: Some(DeviceBuffer::from_slice(&[0.2f32; (N - K + 1) * (N - K + 1)])?), input_size : (N - K + 1, N - K + 1), output_size : (N - K + 1, N - K + 1), out_ref : None}, //weight is (N - K + 1) * (N - K + 1) matric for next layer
-        Layer::<f32> {op : "tanh", weight : None, input_size : (N - K + 1, N - K + 1), output_size : (N - K + 1, N - K + 1), out_ref : None}, //output shape (N - K + 1) * (N - K + 1)
-
-        Layer::<f32> {op : "matmul", weight: None, input_size : (N - K + 1, N - K + 1), output_size : (N - K + 1, N - K + 1), out_ref : None}, // no weight in the last layer
-        Layer::<f32> {op : "gelu", weight : None, input_size : (N - K + 1, N - K + 1), output_size : (N - K + 1, N - K + 1), out_ref : None}, //output shape (N - K + 1) * (N - K + 1)
+        Layer::<f32> {
+            op: "batch_matmul_legacy",
+            weight: Some(&w1),
+            input_size: (N, N),
+            output_size: (N, N),
+            out_ref: None,
+        }, //weight is N x N matric for next layer
+        Layer::<f32> {
+            op: "tanh",
+            weight: None,
+            input_size: (N, N),
+            output_size: (N, N),
+            out_ref: None,
+        }, //out N x N
+        Layer::<f32> {
+            op: "batch_matmul_legacy",
+            weight: Some(&w2),
+            input_size: (N, N),
+            output_size: (N, N),
+            out_ref: None,
+        }, //weight is N x N matric for next layer
+        Layer::<f32> {
+            op: "relu",
+            weight: None,
+            input_size: (N, N),
+            output_size: (N, N),
+            out_ref: None,
+        }, //out N x N
+        Layer::<f32> {
+            op: "batch_matmul_legacy",
+            weight: Some(&w3),
+            input_size: (N, N),
+            output_size: (N, N),
+            out_ref: None,
+        }, //weight is convolution kernel for next layer
+        Layer::<f32> {
+            op: "tanh",
+            weight: None,
+            input_size: (N, N),
+            output_size: (N, N),
+            out_ref: None,
+        }, //out N x N
+        Layer::<f32> {
+            op: "convolution",
+            weight: Some(&w4),
+            input_size: (N, N),
+            output_size: (N - K + 1, N - K + 1),
+            out_ref: None,
+        }, //weight is (N - K + 1) * (N - K + 1) matric for next layer
+        Layer::<f32> {
+            op: "tanh",
+            weight: None,
+            input_size: (N - K + 1, N - K + 1),
+            output_size: (N - K + 1, N - K + 1),
+            out_ref: None,
+        }, //out (N - K + 1) x (N - K + 1)
+        Layer::<f32> {
+            op: "batch_matmul_legacy",
+            weight: Some(&w5),
+            input_size: (N - K + 1, N - K + 1),
+            output_size: (N - K + 1, N - K + 1),
+            out_ref: None,
+        }, //weight is (N - K + 1) * (N - K + 1) matric for next layer
+        Layer::<f32> {
+            op: "tanh",
+            weight: None,
+            input_size: (N - K + 1, N - K + 1),
+            output_size: (N - K + 1, N - K + 1),
+            out_ref: None,
+        }, //output shape (N - K + 1) * (N - K + 1)
+        Layer::<f32> {
+            op: "batch_matmul_legacy",
+            weight: None,
+            input_size: (N - K + 1, N - K + 1),
+            output_size: (N - K + 1, N - K + 1),
+            out_ref: None,
+        }, // no weight in the last layer
+        Layer::<f32> {
+            op: "gelu",
+            weight: None,
+            input_size: (N - K + 1, N - K + 1),
+            output_size: (N - K + 1, N - K + 1),
+            out_ref: None,
+        }, //output shape (N - K + 1) * (N - K + 1)
     ];
+    let mat = vec![0.5f32; N * N];
+    let mato = vec![0.0f32; N * N];
+    let convo = vec![0.0f32; (N - K + 1) * (N - K + 1)];
 
-    //Buffers on device (GPU/GCU), initialized with values
-    let mut matA = DeviceBuffer::from_slice(&[0.5f32; N * N])?;
-    let mut matB = DeviceBuffer::from_slice(&[0.1f32; N * N])?;
-    let mut matOut = DeviceBuffer::from_slice(&[0.0f32; N * N])?;
-    let mut matConvOut = DeviceBuffer::from_slice(&[0.0f32; (N - K + 1) * (N - K + 1)])?;
+    let matA = DeviceBuffer::from_slice(&mat)?;
+    let matB = DeviceBuffer::from_slice(&mat)?;
+    let matOut = DeviceBuffer::from_slice(&mato)?;
+    let matConvOut = DeviceBuffer::from_slice(&convo)?;
 
-    //For activation type mapping
     let map_act = HashMap::from([("relu", 0), ("gelu", 1), ("leaky", 2), ("tanh", 3)]);
 
-    //Reference to output
-    let mut out_ref : Option<&DeviceBuffer<f32>> = None;
-    let mut out_size : Option<(usize, usize)> = None;
+    let mut out_ref: Option<&DeviceBuffer<f32>> = Some(&matOut);
+    let mut matA_ref: Option<&DeviceBuffer<f32>> = Some(&matA);
+    let mut matB_ref: Option<&DeviceBuffer<f32>> = Some(&matB);
 
-    //Forward computing
+    let mut out_size: Option<(usize, usize)> = None;
     for layer in layers {
         if ["relu", "gelu", "leaky", "tanh"].contains(&layer.op) {
             let function_name = "activation";
             match load_module(function_name) {
                 Ok(module) => {
-                    let kernel = module.get_function(&function_name)?;
+                    let function_namef32 = "activationf32";
+                    let kernel = module.get_function(&function_namef32)?;
+                    let param = DeviceBuffer::from_slice(&[
+                        (layer.input_size.0 * layer.input_size.1) as i32,
+                        map_act[layer.op] as i32,
+                    ])?;
+
+                    let (_block_size, _grid_a, _grid_b) =
+                        get_block_grid(layer.input_size.1, layer.input_size.0);
+                    let A = match matA_ref {Some(a)=> {a}, _=> {panic!("error")}};
                     unsafe {
-                        //Slightly difference calling parameter for GCU and GPU.
                         #[cfg(feature = "tops_backend")]
                         let result = launch!(kernel<<<(1, 1, 1), (1, 1, 1), 0, stream>>>(
-                            matA.as_device_ptr(),
-                            (layer.input_size.0 * layer.input_size.1) as i32,
-                            map_act[layer.op] as i32
+                            A.as_device_ptr(),
+                            param.as_device_ptr(),
                         ));
 
                         #[cfg(feature = "cuda_backend")]
-                        let result = launch!(kernel<<<(1, 1, 1), (layer.input_size.0 as u32, layer.input_size.1 as u32, 1), 0, stream>>>(
-                            matA.as_device_ptr(),
-                            layer.output_size.0,
+                        let result = launch!(kernel<<<(grid_a as u32, grid_b as u32), (block_size as u32, block_size as u32), 0, stream>>>(
+                            A.as_device_ptr(),
+                            layer.input_size.0 as u32,
+                            layer.input_size.1 as u32,
                             map_act[layer.op]
                         ));
 
                         result?;
                     }
-                    out_ref = Some(&matA);
+                    out_ref = Some(&A);
                     out_size = Some(layer.output_size);
                 }
-                _ => { panic!("Failed to load kernel!"); }
+                _ => {
+                    panic!("Failed to load kernel!");
+                }
             }
-        } else if layer.op == "matmul" {
+        } else if layer.op == "batch_matmul_legacy" {
             match load_module(layer.op) {
                 Ok(module) => {
                     let kernel = module.get_function(&layer.op)?;
-
                     #[cfg(feature = "tops_backend")]
-                    let inputShapeA = DeviceBuffer::from_slice(&[layer.input_size.0 as i32, layer.input_size.1 as i32, 1i32, 1i32])?;
+                    let inputShapeA = DeviceBuffer::from_slice(&[
+                        1i32,
+                        layer.input_size.0 as i32,
+                        layer.input_size.1 as i32,
+                    ])?;
                     #[cfg(feature = "tops_backend")]
-                    let inputShapeB = DeviceBuffer::from_slice(&[layer.input_size.0 as i32, layer.input_size.1 as i32, 1i32, 1i32])?;
+                    let inputShapeB = DeviceBuffer::from_slice(&[
+                        1i32,
+                        layer.input_size.0 as i32,
+                        layer.input_size.1 as i32,
+                    ])?;
+                    let A = match matA_ref {Some(a)=> {a}, _=> {panic!("error")}};
+                    let B = match matB_ref {Some(a)=> {a}, _=> {panic!("error")}};
+                    let O = match out_ref {Some(a)=> {a}, _=> {panic!("error")}};
 
                     unsafe {
                         #[cfg(feature = "tops_backend")]
                         let result = launch!(kernel<<<(1, 1, 1), (1, 1, 1), 0, stream>>>(
-                            matA.as_device_ptr(),
-                            matB.as_device_ptr(),
-                            matOut.as_device_ptr(),
+                            A.as_device_ptr(),
+                            B.as_device_ptr(),
+                            O.as_device_ptr(),
                             inputShapeA.as_device_ptr(),
                             inputShapeB.as_device_ptr()
                         ));
 
                         #[cfg(feature = "cuda_backend")]
-                        let result = launch!(kernel<<<(1, 1, 1), (layer.input_size.0 as u32, layer.input_size.1 as u32, 1), 0, stream>>>(
-                            matA.as_device_ptr(),
-                            matB.as_device_ptr(),
-                            matOut.as_device_ptr(),
-                            layer.output_size.0
+                        let result = launch!(kernel<<<(grid_a as u32, grid_b as u32), (block_size as u32, block_size as u32), 0, stream>>>(
+                            A.as_device_ptr(),
+                            B.as_device_ptr(),
+                            O.as_device_ptr(),
+                            layer.input_size.0 as u32,
+                            layer.input_size.1 as u32,
+                            layer.output_size.1 as u32
                         ));
 
                         result?;
                     }
-                    std::mem::swap(&mut matA, &mut matOut);
+
+                    matA_ref = Some(&O);
                     match layer.weight {
-                        Some(w) => { matB = w;}
-                        _ => { 
-                            // if idx < len - 1 { println!("Failed to get weight!"); break; }
+                        Some(w) => {
+                            matB_ref = Some(w);
                         }
-                    }
-                    out_ref = Some(&matA);
+                        _ => {
+                        }
+                    };
+
+                    out_ref = Some(&O);
                     out_size = Some(layer.output_size);
                 }
-                _ => { panic!("\nFailed to load kernel (matmul)!"); }
+                _ => {
+                    panic!("\nFailed to load kernel (matmul)!");
+                }
             }
         } else if layer.op == "convolution" {
             match load_module(layer.op) {
                 Ok(module) => {
                     let kernel = module.get_function(&layer.op)?;
+                    let A = match matA_ref {Some(a)=> {a}, _=> {panic!("error")}};
+                    let B = match matB_ref {Some(a)=> {a}, _=> {panic!("error")}};
 
                     #[cfg(feature = "tops_backend")]
-                    let inputShapeA = DeviceBuffer::from_slice(&[layer.input_size.0 as i32, layer.input_size.1 as i32, 1i32, 1i32])?;
+                    let inputShapeA = DeviceBuffer::from_slice(&[
+                        layer.input_size.0 as i32,
+                        layer.input_size.1 as i32,
+                        1i32,
+                        1i32,
+                    ])?;
                     #[cfg(feature = "tops_backend")]
-                    let inputShapeB = DeviceBuffer::from_slice(&[K as i32, K as i32, 1i32, 1i32])?;
+                    let inputShapeB = DeviceBuffer::from_slice(&vec![K as i32, K as i32, 1i32, 1i32])?;
                     #[cfg(feature = "tops_backend")]
-                    let channelInfo = DeviceBuffer::from_slice(&[1i32, 1i32, 1i32, 1i32])?;
+                    let channelInfo = DeviceBuffer::from_slice(&vec![1i32, 1i32, 1i32, 1i32])?;
 
                     unsafe {
-                        
                         #[cfg(feature = "tops_backend")]
                         let result = launch!(kernel<<<(1, 1, 1), (1, 1, 1), 0, stream>>>(
-                            matA.as_device_ptr(),
-                            matB.as_device_ptr(),
+                            A.as_device_ptr(),
+                            B.as_device_ptr(),
                             matConvOut.as_device_ptr(),
                             inputShapeA.as_device_ptr(),
                             inputShapeB.as_device_ptr(),
@@ -438,43 +538,43 @@ fn network_test() -> DeviceResult<()> {
 
                         #[cfg(feature = "cuda_backend")]
                         let result = launch!(kernel<<<(1, 1, 1), (1, 1, 1), 0, stream>>>(
-                            matA.as_device_ptr(),
-                            matB.as_device_ptr(),
-                            matConvOut.as_device_ptr(),
-                            layer.input_size.0 as i32, layer.input_size.1 as i32,
-                            K as i32,
-                            K as i32
+                            A.as_device_ptr(),
+                            B.as_device_ptr(),
+                            ConvOut.as_device_ptr(),
+                            layer.input_size.0 as u32,
+                            layer.input_size.1 as u32,
+                            K as u32,
+                            K as u32
                         ));
 
                         result?;
                     }
-
-                    std::mem::swap(&mut matA, &mut matConvOut);
+                    matA_ref = Some(&matConvOut);
                     match layer.weight {
-                        Some(w) => { matB = w;}
-                        _ => { 
-                            // if idx < len - 1 { println!("Failed to get weight!"); break; }
+                        Some(w) => {
+                            matB_ref = Some(w);
                         }
-                    }
-                    out_ref = Some(&matA);
+                        _ => {
+                        }
+                    };
+                    out_ref = Some(&matConvOut);
                     out_size = Some(layer.output_size);
-
                 }
-                _ => { panic!("\nFailed to load kernel (convolution)!"); }
+                _ => {
+                    panic!("\nFailed to load kernel (convolution)!");
+                }
             }
         } else {
-            panic!("Operation {} not supported!", layer.op); 
+            panic!("Operation {} not supported!", layer.op);
         }
     }
-
     // Wait asynchronous kernels to finish.
     stream.synchronize()?;
 
-    //Obtain results and print
     match out_ref {
         Some(out) => {
             let mut out_host = vec![0.0f32; out.len()];
-            out.copy_to(&mut out_host[0..out.len()])?;
+            out.copy_to(&mut out_host)?;
             match out_size {
                 Some(sz) => {
                     let W = sz.0;
@@ -487,11 +587,14 @@ fn network_test() -> DeviceResult<()> {
                         println!("{}", "");
                     }
                 }
-                _ => { panic!("Unable to obtain compute result!") }
+                _ => {
+                    panic!("Unable to obtain compute result!")
+                }
             }
-
         }
-        _ => { panic!("Unable to obtain compute result!")}
+        _ => {
+            panic!("Unable to obtain compute result!")
+        }
     }
 
     println!("\nLaunched compute kernel successfully.");
@@ -503,16 +606,32 @@ fn network_test() -> DeviceResult<()> {
 ### Sample of UnaryOp kernel for cangle-gcu
 
 ``` c++
-namespace tops {
-template <typename T>
-__device__ __host__ __forceinline__ constexpr int hvlength() {
-  return 128 / sizeof(T);
-}
+#include <stdio.h>
+#include <tops.h>
+#include <tops/topsrtc.h>
+#include <tops/half.h>
+#include <tops/bfloat.h>
 
-} // namespace tops
+#include <tops/tops_runtime.h>
+#include <tops/topsrtc.h>
+#include <krt/scalar.h>
+#include <krt/vector_mask.h>
+#include <krt/dispatch.h>
+#include <krt/leaptr.h>
+#include <krt/vector_infra.h>
+
+#include "pavo/vector_impl.h"
+#include "pavo/vector_mask_impl.h"
+#include "pavo/perfmon_impl.h"
+#include "include/common/atomic_op.h"
+#include "utils.h"
+using namespace std;
+using namespace tops;
+#define tile_size 0x8000
+#define PING_PONG_SIZE 2
 
 __device__ __forceinline__
-auto get_index() {
+int get_index() {
     std::size_t blockIndex = blockIdx.z*(gridDim.x*gridDim.y)
         + blockIdx.y*gridDim.x + blockIdx.x;
     std::size_t threadIndex = threadIdx.z*(blockDim.x*blockDim.y)
@@ -520,112 +639,315 @@ auto get_index() {
     return blockIndex*(blockDim.x*blockDim.y*blockDim.z) + threadIndex;
 }
 
-#define UNARY_OP(TYPE, VT, FN_NAME, FUNC) \
-extern "C" __global__ void FN_NAME( \
-    const size_t numel, \
-    const size_t num_dims, \
-    const size_t *info, \
-    TYPE *inp, \
-    TYPE *out) \
-{ \
-    tops_dte_ctx_t ctx; \
-    tops::dte_scope s(ctx); \
-    std::size_t idx = get_index(); \
-    constexpr std::size_t num_len = tops::hvlength<VT>(); \
-    __valigned__ TYPE buffer1[num_len]; \
-    tops::mdspan buf1(tops::Private, &buffer1, num_len); \
-    tops::mdspan src1(tops::Global, inp + idx * num_len, num_len); \
-    tops::memcpy(ctx, buf1, src1); \
-    const auto &x = tops::vload<VT>(buffer1);  \
-    tops::mdspan dst(tops::Global, out + idx *num_len, num_len); \
-    tops::vstore(FUNC, buffer1);  \
-    tops::memcpy(ctx, dst, buf1); \
-} \
+enum UNARY_TYPE {
+    UNARY_TYPE_NEG = 1,
+    UNARY_TYPE_EXP = 2,
+    UNARY_TYPE_LOG = 3,
+    UNARY_TYPE_SIN = 4,
+    UNARY_TYPE_COS = 5,
+    UNARY_TYPE_ABS = 6,
+    UNARY_TYPE_SQUARE = 8,
+    UNARY_TYPE_SQRT = 9,
+    UNARY_TYPE_RSQRT = 10,
+    UNARY_TYPE_GELU = 11,
+    UNARY_TYPE_RELU = 12,
+    UNARY_TYPE_ELU = 13,
+    UNARY_TYPE_SILU = 14,
+    UNARY_TYPE_TANH = 15,
+    UNARY_TYPE_RECIP = 16,
+    UNARY_TYPE_COPY = 20,
+};
 
-
-template<typename T>
-__device__ __forceinline__ T elu_fwd(T x, T alpha) {
-  if (x > static_cast<T>(0)) {
-    return x;
+template <typename T>
+__device__ void gelu_kernel(T* output, T* input, int num) {
+  using vtype = typename scalar_to_vector<T,
+                                          TOPS_VECTOR_LENGTH>::type;
+  const int vlength = vector_length<vtype>::value;
+  leaptr<vtype> intput_ptr = simple_leaptr<vtype>(input);
+  leaptr<vtype> output_ptr = simple_leaptr<vtype>(output);
+  int group_num = (num + vlength - 1) / vlength;
+  vtype v_input, v_output;
+  for (int i = 0; i < group_num; i++) {
+    v_input = intput_ptr.load();
+    v_output = vgelu(v_input);
+    output_ptr.store(v_output);
   }
-  return alpha * (tops::exp<T>(x) - static_cast<T>(1));
 }
 
-//UnaryOp with additional parameter
-#define UNARY_OP1(TYPE, VT, FN_NAME, FUNC) \
+template <typename T, typename VT>
+__device__ __forceinline__ void unary_atomic(T* in, T* out, int len, UNARY_TYPE tp)
+{
+  tops_dte_ctx_t ctx;
+  ctx.init();
+  switch (tp) {
+    case UNARY_TYPE_NEG:
+      {
+        neg(out, in, len);
+        break;
+      }
+    case UNARY_TYPE_EXP:
+      {
+        exp(out, in, len);
+        break;
+      }
+    case UNARY_TYPE_LOG:
+      {
+        log(out, in, len);
+        break;
+      }
+    case UNARY_TYPE_SIN:
+      {
+        sin(out, in, len);
+        break;
+      }
+    case UNARY_TYPE_COS:
+      {
+        cos(out, in, len);
+        break;
+      }
+    case UNARY_TYPE_ABS:
+      {
+        abs(out, in, len);
+        break;
+      }
+    case UNARY_TYPE_SQUARE:
+      {
+        mul(out, in, in, len);
+        break;
+      }
+    case UNARY_TYPE_SQRT:
+      {
+        sqrt(out, in, len);
+        break;
+      }
+    case UNARY_TYPE_RSQRT:
+      {
+        rsqrt(out, in, len);
+        break;
+      }
+    case UNARY_TYPE_GELU:
+      {
+        gelu_kernel(out, in, len);
+        break;
+      }
+    case UNARY_TYPE_RELU:
+      {
+        relu_kernel<T, VT>(out, in , len);
+        break;
+      }
+    case UNARY_TYPE_ELU:
+      {
+        // elu(out, in, len);
+        break;
+      }
+    case UNARY_TYPE_SILU:
+      {
+        //(out, in, len);
+        break;
+      }
+    case UNARY_TYPE_TANH:
+      {
+        tanh(out, in, len);
+        break;
+      }
+    case UNARY_TYPE_RECIP:
+      {
+        reciprocal(out, in, len);
+        break;
+      }
+    case UNARY_TYPE_COPY:
+      {
+        tops::mdspan src_p(tops::Private, in, len);
+        tops::mdspan dst_p(tops::Private, out, len);
+        tops::memcpy(ctx, dst_p, src_p);
+        break;
+      }
+    default:
+      break;
+    }
+}
+
+
+template <typename T, typename VT>
+__device__ void unary_kernel(T* in, T* out, int len, UNARY_TYPE tp) {
+  tops_dte_ctx_t ctxs_in[PING_PONG_SIZE];
+  tops_dte_ctx_t ctxs_out[PING_PONG_SIZE];
+  tops::event evs_in[PING_PONG_SIZE];
+  tops::event evs_out[PING_PONG_SIZE];
+  __local__ __valigned__ T in_buffer[PING_PONG_SIZE][tile_size];
+  __local__ __valigned__ T out_buffer[PING_PONG_SIZE][tile_size];
+  int N = len;
+  tops::mdspan output(tops::Global, out, N);
+
+  int thread_num = GetThreadNum();
+  int thread_id = GetThreadIdx();
+
+  int thread_off_leading = thread_id * tile_size;
+  int thread_len_leading =
+      N - thread_off_leading >= tile_size ? tile_size : N - thread_off_leading;
+  int thread_step = tile_size * thread_num;
+
+  int thread_off_leading_next = thread_off_leading + thread_step;
+  int thread_remain_leading = N - thread_off_leading_next;
+  int thread_len_leading_next =
+      thread_remain_leading >= tile_size ? tile_size : thread_remain_leading;
+
+  int pp_flag = 0;
+  tops::dte_scope s_in0(ctxs_in[0]);
+  tops::dte_scope s_in1(ctxs_in[1]);
+  tops::dte_scope s_out0(ctxs_out[0]);
+  tops::dte_scope s_out1(ctxs_out[1]);
+
+  // first config pingpong dma completely: d2s/s2d, linear copy
+  if (thread_len_leading > 0) {
+    ctxs_in[0].config_memcpy(
+        tops::mdspan(tops::Private, in_buffer[pp_flag], thread_len_leading),
+        tops::mdspan(tops::Global, in + thread_off_leading,
+                     thread_len_leading));
+
+    ctxs_out[0].config_memcpy(
+        tops::mdspan(tops::Global, out + thread_off_leading,
+                     thread_len_leading),
+        tops::mdspan(tops::Private, out_buffer[pp_flag], thread_len_leading));
+
+    evs_in[pp_flag] = ctxs_in[pp_flag].trigger();
+  }
+
+  if (thread_len_leading_next > 0) {
+    ctxs_in[1].config_memcpy(
+        tops::mdspan(tops::Private, in_buffer[1],
+                     thread_len_leading_next),
+        tops::mdspan(tops::Global, in + thread_off_leading_next,
+                     thread_len_leading_next));
+
+    ctxs_out[1].config_memcpy(
+        tops::mdspan(tops::Global, out + thread_off_leading_next,
+                     thread_len_leading_next),
+        tops::mdspan(tops::Private, out_buffer[1],
+                     thread_len_leading_next));
+  }
+
+  for (int i = thread_off_leading; i < N; i += thread_step) {
+    int pp_flag_next = 1 - pp_flag;
+    int pp_flag_prev = 1 - pp_flag;
+    int thread_off_next = i + thread_step;
+    int thread_remain_next = N - thread_off_next;
+    int thread_len = N - i >= tile_size ? tile_size : N - i;
+    int thread_len_next =
+        thread_remain_next >= tile_size ? tile_size : thread_remain_next;
+    if (thread_len_next > 0) {
+      evs_in[pp_flag_next] = ctxs_in[pp_flag_next].trigger();
+    }
+
+    int thread_off_next2 = i + thread_step * 2;
+    int thread_remain_next2 = N - thread_off_next2;
+    int thread_len_next2 =
+        thread_remain_next2 >= tile_size ? tile_size : thread_remain_next2;
+
+    if (thread_len > 0) {
+      evs_in[pp_flag].wait();
+    }
+
+    if (thread_len_next2 > 0) {
+      ctxs_in[pp_flag].config_memcpy(
+        tops::mdspan(tops::Private, in_buffer[pp_flag],
+                     thread_len_next2),
+        tops::mdspan(tops::Global, in + thread_off_next2,
+                     thread_len_next2));
+    }
+
+    // call atomic op here
+    if (thread_len > 0) {
+      unary_atomic<T, VT>(in_buffer[pp_flag], out_buffer[pp_flag],
+                               thread_len, tp);
+      evs_out[pp_flag] = ctxs_out[pp_flag].trigger();
+    }
+
+    if (i != thread_off_leading) {
+      int thread_off_prev = i - thread_step;
+      int thread_remain_prev = N - thread_off_prev;
+      int thread_len_prev =
+          thread_remain_prev >= tile_size ? tile_size : thread_remain_prev;
+      if (thread_len_prev > 0) {
+        evs_out[pp_flag_prev].wait();
+      }
+
+      if (thread_len_next > 0) {
+        ctxs_out[pp_flag_prev].config_memcpy(
+        tops::mdspan(tops::Global, out + thread_off_next,
+                     thread_len_next),
+        tops::mdspan(tops::Private, out_buffer[pp_flag_prev],
+                     thread_len_next));
+      }
+    }
+    pp_flag = 1 - pp_flag;
+  }
+
+  if (thread_len_leading > 0) {
+    evs_out[1 - pp_flag].wait();
+  }
+}
+
+#define UNARY_OP(TYPE, VT, FN_NAME, TP) \
 extern "C" __global__ void FN_NAME( \
     const size_t numel, \
-    const size_t num_dims, \
-    const size_t *info, \
-    TYPE param, \
     TYPE *inp, \
     TYPE *out) \
 { \
-    tops_dte_ctx_t ctx; \
-    tops::dte_scope s(ctx); \
-    std::size_t idx = get_index(); \
-    constexpr std::size_t num_len = tops::hvlength<VT>(); \
-    __valigned__ TYPE buffer1[num_len]; \
-    tops::mdspan buf1(tops::Private, &buffer1, num_len); \
-    __valigned__ TYPE buffer2[num_len]; \
-    tops::mdspan buf2(tops::Private, &buffer2, num_len); \
-    tops::mdspan src1(tops::Global, inp + idx * num_len, num_len); \
-    tops::memcpy(ctx, buf1, src1); \
-    const auto &x = tops::vload<VT>(buffer1);  \
-    tops::mdspan dst(tops::Global, out + idx *num_len, num_len); \
-    for (int i = 0; i < num_len; i++) { \
-        buffer2[i] = FUNC; \
-    } \
-    tops::memcpy(ctx, dst, buf2); \
+    unary_kernel<TYPE, VT>(inp, out, numel, TP); \
 } \
 
+UNARY_OP(__bf16, vbfloat, uneg_bf16, UNARY_TYPE_NEG)
+UNARY_OP(__bf16, vbfloat, uexp_bf16, UNARY_TYPE_EXP)
+UNARY_OP(__bf16, vbfloat, ulog_bf16, UNARY_TYPE_LOG)
+UNARY_OP(__bf16, vbfloat, usin_bf16, UNARY_TYPE_SIN)
+UNARY_OP(__bf16, vbfloat, ucos_bf16, UNARY_TYPE_COS)
+UNARY_OP(__bf16, vbfloat, uabs_bf16, UNARY_TYPE_ABS)
+UNARY_OP(__bf16, vbfloat, usqr_bf16, UNARY_TYPE_SQUARE)
+UNARY_OP(__bf16, vbfloat, usqrt_bf16, UNARY_TYPE_SQRT)
+UNARY_OP(__bf16, vbfloat, ursqrt_bf16, UNARY_TYPE_RSQRT)
+UNARY_OP(__bf16, vbfloat, ugelu_bf16, UNARY_TYPE_GELU)
+UNARY_OP(__bf16, vbfloat, urelu_bf16, UNARY_TYPE_RELU) 
+UNARY_OP(__bf16, vbfloat, usilu_bf16, UNARY_TYPE_SILU) 
+UNARY_OP(__bf16, vbfloat, utanh_bf16, UNARY_TYPE_TANH) 
+UNARY_OP(__bf16, vbfloat, urecip_bf16, UNARY_TYPE_RECIP) 
+UNARY_OP(__bf16, vbfloat, ucopy_bf16, UNARY_TYPE_COPY) 
+UNARY_OP(__bf16, vbfloat, uelu_bf16, UNARY_TYPE_ELU) 
+
+UNARY_OP(__fp16, vhalf, uneg_f16, UNARY_TYPE_NEG)
+UNARY_OP(__fp16, vhalf, uexp_f16, UNARY_TYPE_EXP)
+UNARY_OP(__fp16, vhalf, ulog_f16, UNARY_TYPE_LOG)
+UNARY_OP(__fp16, vhalf, usin_f16, UNARY_TYPE_SIN)
+UNARY_OP(__fp16, vhalf, ucos_f16, UNARY_TYPE_COS)
+UNARY_OP(__fp16, vhalf, uabs_f16, UNARY_TYPE_ABS)
+UNARY_OP(__fp16, vhalf, usqr_f16, UNARY_TYPE_SQUARE)
+UNARY_OP(__fp16, vhalf, usqrt_f16, UNARY_TYPE_SQRT)
+UNARY_OP(__fp16, vhalf, ursqrt_f16, UNARY_TYPE_RSQRT)
+UNARY_OP(__fp16, vhalf, ugelu_f16, UNARY_TYPE_GELU)
+UNARY_OP(__fp16, vhalf, urelu_f16, UNARY_TYPE_RELU)
+UNARY_OP(__fp16, vhalf, usilu_f16, UNARY_TYPE_SILU)
+UNARY_OP(__fp16, vhalf, utanh_f16, UNARY_TYPE_TANH)
+UNARY_OP(__fp16, vhalf, urecip_f16, UNARY_TYPE_RECIP)
+UNARY_OP(__fp16, vhalf, ucopy_f16, UNARY_TYPE_COPY)
+UNARY_OP(__fp16, vhalf, uelu_f16, UNARY_TYPE_ELU)
 
 
-UNARY_COPY_OP(tops::bfloat, vbfloat, ucopy_bf16)
-UNARY_OP(tops::bfloat, vbfloat, uneg_bf16, tops::vneg<vbfloat>(x))
-UNARY_OP(tops::bfloat, vbfloat, uexp_bf16, tops::vexp<vbfloat>(x))
-UNARY_OP(tops::bfloat, vbfloat, ulog_bf16, tops::vlog<vbfloat>(x))
-UNARY_OP(tops::bfloat, vbfloat, usin_bf16, tops::vsin<vbfloat>(x))
-UNARY_OP(tops::bfloat, vbfloat, ucos_bf16, tops::vcos<vbfloat>(x))
-UNARY_OP(tops::bfloat, vbfloat, uabs_bf16, tops::vabs<vbfloat>(x))
-UNARY_OP(tops::bfloat, vbfloat, usqr_bf16, tops::vmul<vbfloat>(x, x))
-UNARY_OP(tops::bfloat, vbfloat, usqrt_bf16, tops::vsqrt<vbfloat>(x))
-UNARY_OP(tops::bfloat, vbfloat, ugelu_bf16, tops::vgelu<vbfloat>(x))
-UNARY_OP(tops::bfloat, vbfloat, urelu_bf16, tops::vmax<vbfloat>(x, tops::vzero<vbfloat>())) 
-UNARY_OP1(tops::bfloat, vbfloat, uelu_bf16, elu_fwd(x[i], param))
-
-
-
-UNARY_COPY_OP(tops::half, vhalf, ucopy_f16)
-UNARY_OP(tops::half, vhalf, uneg_f16, tops::vneg<vhalf>(x))
-UNARY_OP(tops::half, vhalf, uexp_f16, tops::vexp<vhalf>(x))
-UNARY_OP(tops::half, vhalf, ulog_f16, tops::vlog<vhalf>(x))
-UNARY_OP(tops::half, vhalf, usin_f16, tops::vsin<vhalf>(x))
-UNARY_OP(tops::half, vhalf, ucos_f16, tops::vcos<vhalf>(x))
-UNARY_OP(tops::half, vhalf, uabs_f16, tops::vabs<vhalf>(x))
-UNARY_OP(tops::half, vhalf, usqr_f16, tops::vmul<vhalf>(x, x))
-UNARY_OP(tops::half, vhalf, usqrt_f16, tops::vsqrt<vhalf>(x))
-UNARY_OP(tops::half, vhalf, ugelu_f16, tops::vgelu<vhalf>(x))
-UNARY_OP(tops::half, vhalf, urelu_f16, tops::vmax<vhalf>(x, tops::vzero<vhalf>()))
-UNARY_OP1(tops::half, vhalf, uelu_f16, elu_fwd(x[i], param))
-
-UNARY_COPY_OP(int8_t, vchar, ucopy_i8)
-UNARY_COPY_OP(uint8_t, vuchar, ucopy_u8)
-UNARY_COPY_OP(int32_t, vint, ucopy_i32)
-UNARY_COPY_OP(uint32_t, vuint, ucopy_u32)
-
-UNARY_COPY_OP(float, vfloat, ucopy_f32)
-
-UNARY_OP(float, vfloat, uneg_f32, tops::vneg<vfloat>(x))
-UNARY_OP(float, vfloat, uexp_f32, tops::vexp<vfloat>(x))
-UNARY_OP(float, vfloat, ulog_f32, tops::vlog<vfloat>(x))
-UNARY_OP(float, vfloat, usin_f32, tops::vsin<vfloat>(x))
-UNARY_OP(float, vfloat, ucos_f32, tops::vcos<vfloat>(x))
-UNARY_OP(float, vfloat, uabs_f32, tops::vabs<vfloat>(x))
-UNARY_OP(float, vfloat, usqr_f32, tops::vmul<vfloat>(x, x))
-UNARY_OP(float, vfloat, usqrt_f32, tops::vsqrt<vfloat>(x))
-UNARY_OP(float, vfloat, ugelu_f32, tops::vgelu<vfloat>(x))
-UNARY_OP(float, vfloat, urelu_f32, tops::vmax<vfloat>(x, tops::vzero<vfloat>()))
+UNARY_OP(float, vfloat, uneg_f32, UNARY_TYPE_NEG)
+UNARY_OP(float, vfloat, uexp_f32, UNARY_TYPE_EXP)
+UNARY_OP(float, vfloat, ulog_f32, UNARY_TYPE_LOG)
+UNARY_OP(float, vfloat, usin_f32, UNARY_TYPE_SIN)
+UNARY_OP(float, vfloat, ucos_f32, UNARY_TYPE_COS)
+UNARY_OP(float, vfloat, uabs_f32, UNARY_TYPE_ABS)
+UNARY_OP(float, vfloat, usqr_f32, UNARY_TYPE_SQUARE)
+UNARY_OP(float, vfloat, usqrt_f32, UNARY_TYPE_SQRT)
+UNARY_OP(float, vfloat, ursqrt_f32, UNARY_TYPE_RSQRT)
+UNARY_OP(float, vfloat, ugelu_f32, UNARY_TYPE_GELU)
+UNARY_OP(float, vfloat, urelu_f32, UNARY_TYPE_RELU)
+UNARY_OP(float, vfloat, usilu_f32, UNARY_TYPE_SILU)
+UNARY_OP(float, vfloat, utanh_f32, UNARY_TYPE_TANH)
+UNARY_OP(float, vfloat, urecip_f32, UNARY_TYPE_RECIP)
+UNARY_OP(float, vfloat, ucopy_f32, UNARY_TYPE_COPY)
+UNARY_OP(float, vfloat, uelu_f32, UNARY_TYPE_ELU)
 ```
 
 ### Sample of Dot/Matmul kernel (TopsCC + Intrinsics) for cangle-gcu
