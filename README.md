@@ -46,12 +46,12 @@ __TODO: update status of the following template__
 ## Installation of dependencies 
 To bootstrap this project, you should run follow cmd first to fetch all the submodules from its source repos:
 
-Install GCU driver (2.7.1+), TopsCC and Runtime (TopsPlatform 0.8.3+)
+Install GCU driver (2.7.1+), TopsCC and Runtime (or TopsPlatform 0.8.3+)
 
-Run TopsPlatform installation, and select driver installation outside docker and topscc & runtime installation inside docker.
+Run TopsPlatform installation: driver installation outside docker, and topscc & runtime installation inside docker.
 
 ```shell
-sudo TopsPlatform_0.8.0.3_deb_amd64.run 
+sudo TopsPlatform_0.8.3_deb_amd64.run 
 ```
 
 Install Rust and Cargo
@@ -611,18 +611,12 @@ pub fn network_test() -> DeviceResult<()> {
 #include <tops/topsrtc.h>
 #include <tops/half.h>
 #include <tops/bfloat.h>
-
 #include <tops/tops_runtime.h>
-#include <tops/topsrtc.h>
 #include <krt/scalar.h>
 #include <krt/vector_mask.h>
 #include <krt/dispatch.h>
 #include <krt/leaptr.h>
 #include <krt/vector_infra.h>
-
-#include "pavo/vector_impl.h"
-#include "pavo/vector_mask_impl.h"
-#include "pavo/perfmon_impl.h"
 #include "include/common/atomic_op.h"
 #include "utils.h"
 using namespace std;
@@ -737,12 +731,12 @@ __device__ __forceinline__ void unary_atomic(T* in, T* out, int len, UNARY_TYPE 
       }
     case UNARY_TYPE_ELU:
       {
-        // elu(out, in, len);
+        // elu(out, in, len); todo!()
         break;
       }
     case UNARY_TYPE_SILU:
       {
-        //(out, in, len);
+        //(out, in, len); todo!()
         break;
       }
     case UNARY_TYPE_TANH:
