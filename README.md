@@ -73,7 +73,7 @@ __Write the following unfinished GCU kernerls defined in Candle (written in Tops
 
 **Ternary**: $\textcolor{red}{\text{where}}$
 
-**Reduce**: sum, fast_min, fast_max, fast_argmin, fast_argmax, $\textcolor{red}{\text{fast\_sum}}$
+**Reduce**: sum, fast_min, $\textcolor{red}{\text{fast\_max}}$, fast_argmin, fast_argmax, $\textcolor{red}{\text{fast\_sum}}$
 
 **Indexing**: $\textcolor{red}{\text{is}}$, gather, ia, sa
 
@@ -87,7 +87,7 @@ __Write the following unfinished GCU kernerls defined in Candle (written in Tops
 
 **Affine** ✅: $\textcolor{red}{\text{affine}}$
 
-**Matmul/Dot** ✅: $\textcolor{red}{\text{matmul}}$/dot
+**GEMM/Matmul/Dot** ✅: $\textcolor{red}{\text{gemm}}$/$\textcolor{red}{\text{matmul}}$/$\textcolor{red}{\text{dot}}$
 
 $\textcolor{green}{\text{Note}}$: $\textcolor{red}{\text{micro-kernels in red for large language models}}$, e.g., llama, chatglm, falcon, etc.
 
@@ -603,7 +603,7 @@ pub fn network_test() -> DeviceResult<()> {
 }
 ```
 
-### Sample of UnaryOp kernel for cangle-gcu
+### Sample of UnaryOp kernel for candle-gcu
 
 ``` c++
 #include <stdio.h>
@@ -621,17 +621,6 @@ pub fn network_test() -> DeviceResult<()> {
 #include "utils.h"
 using namespace std;
 using namespace tops;
-#define tile_size 0x8000
-#define PING_PONG_SIZE 2
-
-__device__ __forceinline__
-int get_index() {
-    std::size_t blockIndex = blockIdx.z*(gridDim.x*gridDim.y)
-        + blockIdx.y*gridDim.x + blockIdx.x;
-    std::size_t threadIndex = threadIdx.z*(blockDim.x*blockDim.y)
-        + threadIdx.y*blockDim.x + threadIdx.x;
-    return blockIndex*(blockDim.x*blockDim.y*blockDim.z) + threadIndex;
-}
 
 enum UNARY_TYPE {
     UNARY_TYPE_NEG = 1,
@@ -761,6 +750,8 @@ __device__ __forceinline__ void unary_atomic(T* in, T* out, int len, UNARY_TYPE 
     }
 }
 
+#define tile_size 0x8000
+#define PING_PONG_SIZE 2
 
 template <typename T, typename VT>
 __device__ void unary_kernel(T* in, T* out, int len, UNARY_TYPE tp) {
