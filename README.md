@@ -109,6 +109,13 @@ cargo run --example llama --features gcu,scorpio -- --local-weights THE_WEIGHT_F
 
 **The inference result is not correct because I haven't write all kernels. Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels need to be implemented, i.e., affine, binary, cast, conv, matmul, fill, indexing, reduce, and unary. The referenceing CUDA kernels can be found in candle-kernels.**
 
+**Test candle components** (e.g., mlp, embedding, rmsnorm, maskfill, attention, etc.) for GCU (Scorpio):
+
+```shell
+cd candle-gcu
+cargo run --example gcutest --features gcu,scorpio
+```
+
 ## End-to-end debuging candle-gcu models + CAPS + GCU kernels (Rust/C++)
 Candle-gcu enables end-to-end debuging for Rust and C++ code in a single environment (VS code).
 
