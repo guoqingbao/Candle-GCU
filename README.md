@@ -109,6 +109,20 @@ cargo run --example llama --features gcu,scorpio -- --local-weights THE_WEIGHT_F
 
 **Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels that have been initially implemented, i.e., affine, binary, cast, conv, matmul, fill, indexing, reduce, and unary. The referenceing CUDA kernels can be found in candle-kernels.**
 
+**Sample inference output:**
+```
+...
+loading the model weights from meta-llama/Llama-2-7b-hf
+building the model
+starting the inference loop
+Please talk about deep learning.
+
+Deep learning (also known as deep structured learning) is part of a broader family of machine learning methods based on artificial neural networks with representation learning. Learning can be supervised, semi-supervised or unsupervised.
+Deep-learning architectures such as deep neural networks, deep belief networks, deep reinforcement learning, recurrent neural networks, convolutional
+
+100 tokens generated (2.2013696766843713 token/s)
+```
+
 **Test candle components** (e.g., mlp, embedding, rmsnorm, maskfill, attention, etc.) for GCU (Scorpio):
 
 ```shell
