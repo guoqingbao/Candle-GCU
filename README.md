@@ -71,11 +71,11 @@ __Write the following unfinished GCU kernerls defined in Candle (written in Tops
 
 **Unary** ✅: $\textcolor{red}{\text{copy}}$, neg, recip, $\textcolor{red}{\text{exp}}$, log, $\textcolor{red}{\text{sin}}$, $\textcolor{red}{\text{cos}}$, abs, $\textcolor{red}{\text{sqr}}$, $\textcolor{red}{\text{sqrt}}$, gelu, relu, elu
 
-**Ternary**: $\textcolor{red}{\text{where}}$
+**Ternary** ✅: $\textcolor{red}{\text{where}}$
 
-**Reduce**: sum, fast_min, $\textcolor{red}{\text{fast\_max}}$, fast_argmin, fast_argmax, $\textcolor{red}{\text{fast\_sum}}$
+**Reduce** ✅: sum, fast_min, $\textcolor{red}{\text{fast\_max}}$, fast_argmin, fast_argmax, $\textcolor{red}{\text{fast\_sum}}$
 
-**Indexing**: $\textcolor{red}{\text{is}}$, gather, ia, sa
+**Indexing** ✅: $\textcolor{red}{\text{is}}$, gather, ia, sa
 
 **Fill** ✅: fill
 
@@ -104,10 +104,10 @@ Replace **THE_WEIGHT_FOLDER** with your weight folder and run the following comm
 
 ``` shell
 cd candle-gcu
-cargo run --example llama --features gcu,scorpio -- --local-weights THE_WEIGHT_FOLDER --prompt "Please give me 200 words about deep learning."
+cargo run --example llama --features gcu,scorpio -- --local-weights THE_WEIGHT_FOLDER --prompt "Please talk about deep learning."
 ```
 
-**The inference result is not correct because I haven't write all kernels. Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels need to be implemented, i.e., affine, binary, cast, conv, matmul, fill, indexing, reduce, and unary. The referenceing CUDA kernels can be found in candle-kernels.**
+**Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels that have been initially implemented, i.e., affine, binary, cast, conv, matmul, fill, indexing, reduce, and unary. The referenceing CUDA kernels can be found in candle-kernels.**
 
 **Test candle components** (e.g., mlp, embedding, rmsnorm, maskfill, attention, etc.) for GCU (Scorpio):
 
