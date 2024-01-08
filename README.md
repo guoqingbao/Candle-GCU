@@ -46,12 +46,12 @@ __TODO: update status with the following template__
 ## Installation of dependencies 
 To bootstrap this project, you should run follow cmd first to fetch all the submodules from its source repos:
 
-Install GCU driver (2.7.1+), TopsCC and Runtime (or TopsPlatform 0.8.3+)
+Install GCU driver (2.6+), CAPS (0.9+)
 
-Run TopsPlatform installation: driver installation outside docker, and topscc & runtime installation inside docker.
+Run CAPS installation: driver installation outside docker, and topscc & runtime installation inside docker.
 
 ```shell
-sudo TopsPlatform_0.8.3_deb_amd64.run 
+sudo ./TopsPlatform_0.9.1_deb_amd64.run 
 ```
 
 Install Rust and Cargo
@@ -107,7 +107,7 @@ cd candle-gcu
 cargo run --release --example llama --features gcu,scorpio -- --local-weights /home/llama2_weights/ --prompt "Please talk about deep learning in 100 words."
 ```
 
-**Sample inference output:**
+**Sample inference output (Scorpio X1):**
 ```
 ...
 loading the model weights from meta-llama/Llama-2-7b-hf
@@ -116,7 +116,7 @@ starting the inference loop
 Please talk about deep learning in 100 words.
 Deep learning is a subset of machine learning that involves the use of artificial neural networks to model and solve complex problems. It is particularly useful for tasks that require the processing and analysis of large amounts of data, such as image and speech recognition, natural language processing, and autonomous driving. Deep learning algorithms are capable of learning and improving on their own by automatically adjusting their internal parameters during training, allowing them to achieve state-of-the-art performance in a wide range of applications
 
-100 tokens generated (3.1187763028504096 token/s)
+100 tokens generated (4.502893680088833 token/s)
 ```
 
 **Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels that have been initially implemented, i.e., affine, binary, cast, matmul, fill, indexing, reduce, ternary and unary, in ubridge/kernels**
@@ -125,7 +125,22 @@ Deep learning is a subset of machine learning that involves the use of artificia
 
 ```shell
 cd candle-gcu
-cargo run --release --example gcutest --features gcu,scorpio
+cargo run --release --example gcutest --features gcu,scorpio -- --local-weights /home/ustc/llama2_weights/
+```
+
+```
+start the candle-gcu testing cases...
+Test cache passed!
+Test cast passed!
+Test embedding passed!
+Test softmax passed!
+Test rmsnorm passed!
+Test maskfill passed!
+Test matmul passed!
+Test block passed!
+Test attention passed!
+Test narrow passed!
+Test rotary_embedding passed!
 ```
 
 ## End-to-end debuging candle-gcu models + CAPS + GCU kernels (Rust/C++)
