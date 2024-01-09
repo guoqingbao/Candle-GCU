@@ -52,6 +52,7 @@ Run CAPS installation: driver installation outside docker, and topscc & runtime 
 
 ```shell
 sudo ./TopsPlatform_0.9.1_deb_amd64.run 
+export PATH=$PATH:/opt/tops/bin
 ```
 
 Install Rust and Cargo
@@ -125,7 +126,7 @@ Deep learning is a subset of machine learning that involves the use of artificia
 
 ```shell
 cd candle-gcu
-cargo run --release --example gcutest --features gcu,scorpio -- --local-weights /home/ustc/llama2_weights/
+cargo run --release --example gcutest --features gcu,scorpio -- --local-weights /home/llama2_weights/
 ```
 
 ```
