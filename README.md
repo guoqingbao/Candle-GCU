@@ -117,7 +117,7 @@ starting the inference loop
 Please talk about deep learning in 100 words.
 Deep learning is a subset of machine learning that involves the use of artificial neural networks to model and solve complex problems. It is particularly useful for tasks that require the processing and analysis of large amounts of data, such as image and speech recognition, natural language processing, and autonomous driving. Deep learning algorithms are capable of learning and improving on their own by automatically adjusting their internal parameters during training, allowing them to achieve state-of-the-art performance in a wide range of applications
 
-100 tokens generated (4.502893680088833 token/s)
+100 tokens generated (4.800282182475973 token/s)
 ```
 
 **Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels that have been initially implemented, i.e., affine, binary, cast, matmul, fill, indexing, reduce, ternary and unary, in ubridge/kernels**
@@ -137,6 +137,7 @@ Test embedding passed!
 Test softmax passed!
 Test rmsnorm passed!
 Test maskfill passed!
+Test concat passed!
 Test matmul passed!
 Test block passed!
 Test attention passed!
