@@ -59,6 +59,8 @@ Install Rust and Cargo
 
 ```shell
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+apt install libssl-dev
+apt install pkg-config
 ```
 
 Update submodules (candle-gcu, ubridge, UHHI)
@@ -122,7 +124,15 @@ Deep learning is a subset of machine learning that involves the use of artificia
 
 **Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels that have been initially implemented, i.e., affine, binary, cast, matmul, fill, indexing, reduce, ternary and unary, in ubridge/kernels**
 
-**Test candle components** (e.g., mlp, embedding, softmax, rmsnorm, maskfill, attention, etc.) for GCU (Scorpio):
+**LLaMa2 inference on CPU and GPU:**
+```shell
+//cpu
+cargo run --release --example llama -- --local-weights /home/llama2_weights/ --prompt "Please talk about deep learning in 100 words."
+//gpu
+cargo run --release --example llama --features cuda -- --local-weights /home/llama2_weights/ --prompt "Please talk about deep learning in 100 words."
+```
+
+**Test candle components on GCU** (e.g., mlp, embedding, softmax, rmsnorm, maskfill, attention, etc.) for GCU (Scorpio):
 
 ```shell
 cd candle-gcu
