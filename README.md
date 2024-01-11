@@ -69,6 +69,16 @@ Update submodules (candle-gcu, ubridge, UHHI)
 git submodule update --init --recursive
 ```
 
+## Switch between GPU & GCU development 
+
+(enable one of the following default features under candle-examples/Cargo.toml & candle-core/Cargo.toml)
+
+default = ["gcu", "scorpio"] #gcu scorpio
+
+default = ["cuda"] #gpu cuda
+
+default = ["cuda", "flash-attn"] #gpu cuda with flash attention (cutlass build)
+
 ## $\textcolor{green}{\text{TODO}}$
 __Write the following unfinished GCU kernerls defined in Candle (written in TopsCC, refer to candle-kernels)__
 
