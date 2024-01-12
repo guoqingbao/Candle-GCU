@@ -29,19 +29,13 @@ Candle + GCU Backend -> Ubridge -> UHHI -> GCU Runtime (http://git.enflame.cn/sw
 Currently, candle-gcu supports following models in candle-transformers. Notably, this progress couples with the community works
 
 __TODO: update status with the following template__
-| LLM Model ID | LLM Model | Supporting GPU | Supporting Scorpio | Supporting Dorado |
-|--|--|--|--|--|
-| #1 | LLAMA |✅|✅|x|
-| #2 | LLAMA2 |✅|✅|x|
-| #3 | Stable Diffusion |✅|x|x|
-| #4 | TBD |✅|✅|x| 
-| #5 | TBD |✅|✅|x|
-| #6 | TBD |✅|✅|x|
-| #7 | TBA |✅|✅|x|
-| #8 | TBA |✅|✅|x|
-| #9 | TBA |✅|✅|x|
-| #10 | TBA |✅|✅|x|
-| #11 | TBA |✅|✅|x|
+| LLM Model ID | LLM Model | Supporting GPU | Supporting Scorpio
+|--|--|--|--|
+| #1 | LLAMA |✅|✅|
+| #2 | LLAMA2 |✅|✅|
+| #3 | Mistral |✅|✅|
+| #4 | Stable Diffusion |✅|x|
+| #5 | TBD |✅|✅|
 
 ## Installation of dependencies 
 To bootstrap this project, you should run follow cmd first to fetch all the submodules from its source repos:
@@ -106,11 +100,11 @@ $\textcolor{green}{\text{Note}}$: $\textcolor{red}{\text{micro-kernels in red fo
 
 ✅: Initial implementation done.
 
-## Sample (LLaMa2 Inference)
+## Sample (LLaMa2 & Mistral Inference)
 Download LLaMa2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains the following files:
 
-config.json             model-00001-of-00002.safetensors  pytorch_model-00001-of-00002.bin  special_tokens_map.json  tokenizer.model
-convert.py              model-00002-of-00002.safetensors  pytorch_model-00002-of-00002.bin  tokenizer_config.json    tosafetensor.py
+config.json             model-00001-of-00002.safetensors  special_tokens_map.json  tokenizer.model
+convert.py              model-00002-of-00002.safetensors  tokenizer_config.json    tosafetensor.py
 generation_config.json  pytorch_model.bin.index.json      tokenizer.json
 
 Replace **/home/llama2_weights/** with your weight folder and run the following command on Scorpio:
@@ -120,7 +114,7 @@ cd candle-gcu
 cargo run --release --example llama --features gcu,scorpio -- --local-weights /home/llama2_weights/ --prompt "Please talk about deep learning in 100 words."
 ```
 
-**Sample inference output (Scorpio X1):**
+**LLaMa2-7B Sample inference output (Scorpio X1):**
 ```
 ...
 loading the model weights from meta-llama/Llama-2-7b-hf
@@ -130,6 +124,27 @@ Please talk about deep learning in 100 words.
 Deep learning is a subset of machine learning that involves the use of artificial neural networks to model and solve complex problems. It is particularly useful for tasks that require the processing and analysis of large amounts of data, such as image and speech recognition, natural language processing, and autonomous driving. Deep learning algorithms are capable of learning and improving on their own by automatically adjusting their internal parameters during training, allowing them to achieve state-of-the-art performance in a wide range of applications
 
 100 tokens generated (4.800282182475973 token/s)
+```
+
+Download Mistral weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains the following files:
+
+config.json             model-00001-of-00003.safetensors  special_tokens_map.json  tokenizer.model
+convert.py              model-00002-of-00003.safetensors  model-00003-of-00003.safetensors   tokenizer_config.json    tosafetensor.py
+generation_config.json  pytorch_model.bin.index.json      tokenizer.json
+
+Replace **/home/mistral_7b/** with your weight folder and run the following command on Scorpio:
+
+``` shell
+cd candle-gcu
+cargo run --release --example mistral --features gcu,scorpio -- --weight-files /home/mistral_7b/model-00001-of-00003.safetensors,/home/mistral_7b/model-00002-of-00003.safetensors,/home/mistral_7b/model-00003-of-00003.safetensors --tokenizer-file /home/mistral_7b/tokenizer.json --prompt "Please talk about deep learning in 100 words."
+```
+
+**Mistral-7B Sample inference output (Scorpio X1):**
+```
+loaded the model in 55.93013996s
+Please talk about deep learning in 100 words. 
+Deep learning is a subset of machine learning that uses artificial neural networks with three or more layers to model high-level abstractions in data. Deep learning has achieved state-of-the-art results in various applications, including image and speech recognition, natural language processing, and autonomous driving.
+61 tokens generated (2.71 token/s)
 ```
 
 **Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels that have been initially implemented, i.e., affine, binary, cast, matmul, fill, indexing, reduce, ternary and unary, in ubridge/kernels**
