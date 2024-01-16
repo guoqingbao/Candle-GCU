@@ -34,8 +34,12 @@ __TODO: update status with the following template__
 | #1 | LLAMA |✅|✅|
 | #2 | LLAMA2 |✅|✅|
 | #3 | Mistral |✅|✅|
-| #4 | Stable Diffusion |✅|x|
-| #5 | TBD |✅|✅|
+| #4 | Phi-2 |✅|✅|
+| #5 | Yi |✅|TBD|
+| #6 | StableLM |✅|TBD|
+| #7 | Falcon |✅|TBD|
+| #8 | ChatGLM |✅|TBD|
+| #9 | Stable Diffusion |✅|x|
 
 ## Installation of dependencies 
 To bootstrap this project, you should run follow cmd first to fetch all the submodules from its source repos:
