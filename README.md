@@ -35,11 +35,11 @@ __TODO: update status with the following template__
 | #2 | LLAMA2 |✅|✅|
 | #3 | Mistral |✅|✅|
 | #4 | Phi-2 |✅|✅|
-| #5 | Yi |✅|TBD|
+| #5 | Yi |✅|✅|
 | #6 | StableLM |✅|TBD|
 | #7 | Falcon |✅|TBD|
 | #8 | ChatGLM |✅|TBD|
-| #9 | Stable Diffusion |✅|x|
+| #9 | Stable Diffusion |✅|TBD|
 
 ## Installation of dependencies 
 To bootstrap this project, you should run follow cmd first to fetch all the submodules from its source repos:
@@ -104,12 +104,11 @@ $\textcolor{green}{\text{Note}}$: $\textcolor{red}{\text{micro-kernels in red fo
 
 ✅: Initial implementation done.
 
-## Sample (LLaMa2 & Mistral & Phi-2 Inference)
-1. Download LLaMa2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains the following files:
+## Sample LLM Inference (LLaMa2, Mistral, Phi-2, Yi)
+1. Download LLaMa2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
 
-config.json             model-00001-of-00002.safetensors  special_tokens_map.json  tokenizer.model
-tokenizer.json          model-00002-of-00002.safetensors  tokenizer_config.json    
-generation_config.json  pytorch_model.bin.index.json      
+config.json             model-00001-of-00002.safetensors   
+tokenizer.json          model-00002-of-00002.safetensors    
 
 Replace **/home/llama2_weights/** with your weight folder and run the following command on Scorpio:
 
@@ -130,11 +129,10 @@ Deep learning is a subset of machine learning that involves the use of artificia
 100 tokens generated (4.800282182475973 token/s)
 ```
 
-2. Download Mistral weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains the following files:
+2. Download Mistral weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
 
-config.json             model-00001-of-00003.safetensors  special_tokens_map.json  tokenizer.model
-tokenizer.json          model-00002-of-00003.safetensors  model-00003-of-00003.safetensors   tokenizer_config.json    
-generation_config.json  pytorch_model.bin.index.json      
+config.json             model-00001-of-00003.safetensors  
+tokenizer.json          model-00002-of-00003.safetensors  model-00003-of-00003.safetensors       
 
 Replace **/home/mistral_7b/** with your weight folder and run the following command on Scorpio:
 
@@ -151,11 +149,10 @@ Deep learning is a subset of machine learning that uses artificial neural networ
 61 tokens generated (2.71 token/s)
 ```
 
-3. Download Phi-2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains the following files:
+3. Download Phi-2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
 
-config.json             model-00001-of-00002.safetensors  special_tokens_map.json  
-tokenizer.json          model-00002-of-00002.safetensors  tokenizer_config.json 
-pytorch_model.bin.index.json      
+config.json             model-00001-of-00002.safetensors  
+tokenizer.json          model-00002-of-00002.safetensors   
 
 Replace **/home/phi2/** with your weight folder and run the following command on Scorpio:
 
@@ -172,6 +169,31 @@ Instruct: Please talk about deep learning in 100 words. Output:
 Deep learning is a subset of machine learning that utilizes artificial neural networks to model and understand complex patterns and relationships in data. It involves training algorithms on large datasets, allowing them to learn from examples and make predictions or decisions without being explicitly programmed. Deep learning has achieved remarkable success in various domains, such as image recognition, natural language processing, and speech synthesis. By leveraging the power of deep neural networks, computers can now perform tasks that were previously thought to be exclusive to human intelligence. However, deep learning also faces challenges, such as interpretability and generalization to new data. Despite these limitations, deep learning continues to advance rapidly and has the potential to revolutionize many industries.
 
 138 tokens generated (4.95 token/s)
+```
+
+4. Download Yi-6B weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+
+model-00001-of-00003.safetensors     model-00002-of-00003.safetensors  
+tokenizer.json          model-00003-of-00003.safetensors   
+
+Replace **/home/yi-6b/** with your weight folder and run the following command on Scorpio:
+
+``` shell
+cd candle-gcu
+cargo run --release --example yi --features gcu,scorpio -- --which 6b --weight-files /home/yi-6b/model-00001-of-00003.safetensors,/home/yi-6b/model-00002-of-00003.safetensors,/home/yi-6b/model-00003-of-00003.safetensors --tokenizer-file /home/yi-6b/tokenizer.json --prompt "请简单介绍一下深度学习"
+```
+
+**Yi-6B Sample inference output (Scorpio X1):**
+
+```
+loaded the model in 58.950515169s
+请简单介绍一下深度学习中的卷积操作。
+在深度学习中，卷积操作是一种常用的操作，用于处理图像数据和其他类型的数据。
+卷积操作的基本思想是将输入的数据进行局部移动或滑动，从而实现数据的变换和滤波等功能。
+在深度学习的应用中，卷积操作通常与神经网络的卷积层（ConvLayer）结合使用，以处理图像数据或其他类型的数据。
+
+简而言之，卷积操作是一种用于处理图像和其他类型数据的深度学习技术。
+100 tokens generated (2.56 token/s)
 ```
 
 **Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels that have been initially implemented, i.e., affine, binary, cast, matmul, fill, indexing, reduce, ternary and unary, in ubridge/kernels**
