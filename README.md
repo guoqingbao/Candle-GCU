@@ -126,7 +126,7 @@ starting the inference loop
 Please talk about deep learning in 100 words.
 Deep learning is a subset of machine learning that involves the use of artificial neural networks to model and solve complex problems. It is particularly useful for tasks that require the processing and analysis of large amounts of data, such as image and speech recognition, natural language processing, and autonomous driving. Deep learning algorithms are capable of learning and improving on their own by automatically adjusting their internal parameters during training, allowing them to achieve state-of-the-art performance in a wide range of applications
 
-100 tokens generated (4.800282182475973 token/s)
+100 tokens generated (5.269920672713072 token/s)
 ```
 
 2. Download Mistral weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -146,7 +146,7 @@ cargo run --release --example mistral --features gcu,scorpio -- --weight-files /
 loaded the model in 55.93013996s
 Please talk about deep learning in 100 words. 
 Deep learning is a subset of machine learning that uses artificial neural networks with three or more layers to model high-level abstractions in data. Deep learning has achieved state-of-the-art results in various applications, including image and speech recognition, natural language processing, and autonomous driving.
-61 tokens generated (2.71 token/s)
+61 tokens generated (2.94 token/s)
 ```
 
 3. Download Phi-2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -168,7 +168,7 @@ starting the inference loop
 Instruct: Please talk about deep learning in 100 words. Output: 
 Deep learning is a subset of machine learning that utilizes artificial neural networks to model and understand complex patterns and relationships in data. It involves training algorithms on large datasets, allowing them to learn from examples and make predictions or decisions without being explicitly programmed. Deep learning has achieved remarkable success in various domains, such as image recognition, natural language processing, and speech synthesis. By leveraging the power of deep neural networks, computers can now perform tasks that were previously thought to be exclusive to human intelligence. However, deep learning also faces challenges, such as interpretability and generalization to new data. Despite these limitations, deep learning continues to advance rapidly and has the potential to revolutionize many industries.
 
-138 tokens generated (4.95 token/s)
+138 tokens generated (5.59 token/s)
 ```
 
 4. Download Yi-6B weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -193,7 +193,7 @@ loaded the model in 58.950515169s
 在深度学习的应用中，卷积操作通常与神经网络的卷积层（ConvLayer）结合使用，以处理图像数据或其他类型的数据。
 
 简而言之，卷积操作是一种用于处理图像和其他类型数据的深度学习技术。
-100 tokens generated (2.56 token/s)
+100 tokens generated (2.68 token/s)
 ```
 
 **Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels that have been initially implemented, i.e., affine, binary, cast, matmul, fill, indexing, reduce, ternary and unary, in ubridge/kernels**
