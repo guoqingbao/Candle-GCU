@@ -104,8 +104,21 @@ $\textcolor{green}{\text{Note}}$: $\textcolor{red}{\text{micro-kernels in red fo
 
 ✅: Initial implementation done.
 
+## $\textcolor{green}{\text{Fused kernel}}$
+**Softmax**✅: $\textcolor{green}{\text{softmax}}$
+
+**Layernorm**✅: $\textcolor{green}{\text{layernorm}}$, $\textcolor{green}{\text{rmsNorm}}$
+
+**Embedding**✅: $\textcolor{green}{\text{rotary embedding}}$
+
+**Concat**✅: $\textcolor{green}{\text{kvconcat}}$
+
+**Attention**: flash attention, scaled dot-product attention
+
+✅: Naive implementation done.
+
 ## Sample LLM Inference (LLaMa2, Mistral, Phi-2, Yi)
-1. Download LLaMa2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+### 1. Download LLaMa2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
 
 config.json             model-00001-of-00002.safetensors   
 tokenizer.json          model-00002-of-00002.safetensors    
@@ -129,7 +142,7 @@ Deep learning is a subset of machine learning that involves the use of artificia
 100 tokens generated (6.951063393269474 token/s)
 ```
 
-2. Download Mistral weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+### 2. Download Mistral weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
 
 config.json             model-00001-of-00003.safetensors  
 tokenizer.json          model-00002-of-00003.safetensors  model-00003-of-00003.safetensors       
@@ -149,7 +162,7 @@ Deep learning is a subset of machine learning that uses artificial neural networ
 61 tokens generated (3.40 token/s)
 ```
 
-3. Download Phi-2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+### 3. Download Phi-2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
 
 config.json             model-00001-of-00002.safetensors  
 tokenizer.json          model-00002-of-00002.safetensors   
@@ -171,7 +184,7 @@ Deep learning is a subset of machine learning that utilizes artificial neural ne
 104 tokens generated (7.42 token/s)
 ```
 
-4. Download Yi-6B weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+### 4. Download Yi-6B weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
 
 model-00001-of-00003.safetensors     model-00002-of-00003.safetensors  
 tokenizer.json          model-00003-of-00003.safetensors   
@@ -723,429 +736,201 @@ pub fn network_test() -> DeviceResult<()> {
 }
 ```
 
-### Sample of UnaryOp kernel for candle-gcu
+### Sample of Index select kernel for candle-gcu
 
 ``` c++
+
 #include <stdio.h>
 #include <tops.h>
-#include <tops/topsrtc.h>
 #include <tops/half.h>
-#include <tops/bfloat.h>
-#include <tops/tops_runtime.h>
-#include <krt/scalar.h>
-#include <krt/vector_mask.h>
-#include <krt/dispatch.h>
-#include <krt/leaptr.h>
-#include <krt/vector_infra.h>
-#include "include/common/atomic_op.h"
+#include <algorithm>
+#include <vector>
+#include "tops/tops_runtime.h"
 #include "utils.h"
 using namespace std;
-using namespace tops;
+#define TILE_SIZE AlignDown(((VDMEM_SIZE) / 16), 256)
 
-enum UNARY_TYPE {
-    UNARY_TYPE_NEG = 1,
-    UNARY_TYPE_EXP = 2,
-    UNARY_TYPE_LOG = 3,
-    UNARY_TYPE_SIN = 4,
-    UNARY_TYPE_COS = 5,
-    UNARY_TYPE_ABS = 6,
-    UNARY_TYPE_SQUARE = 8,
-    UNARY_TYPE_SQRT = 9,
-    UNARY_TYPE_RSQRT = 10,
-    UNARY_TYPE_GELU = 11,
-    UNARY_TYPE_RELU = 12,
-    UNARY_TYPE_ELU = 13,
-    UNARY_TYPE_SILU = 14,
-    UNARY_TYPE_TANH = 15,
-    UNARY_TYPE_RECIP = 16,
-    UNARY_TYPE_COPY = 20,
-};
+template <typename ID_TYPENAME, typename T>
+__device__ __forceinline__ void index_select_kernel(const size_t id_numel,
+    ID_TYPENAME *ids, T *inp, T *out,
+    const size_t left_size, const size_t dim_size, const size_t right_size) {
+    int thread_id = GetThreadIdx();
+    int MAX_THREADS = GetThreadNum();
+    int N = id_numel;
+    __local__ __valigned__ ID_TYPENAME ids_buffer[4096];
 
-template <typename T>
-__device__ void gelu_kernel(T* output, T* input, int num) {
-  using vtype = typename scalar_to_vector<T,
-                                          TOPS_VECTOR_LENGTH>::type;
-  const int vlength = vector_length<vtype>::value;
-  leaptr<vtype> intput_ptr = simple_leaptr<vtype>(input);
-  leaptr<vtype> output_ptr = simple_leaptr<vtype>(output);
-  int group_num = (num + vlength - 1) / vlength;
-  vtype v_input, v_output;
-  for (int i = 0; i < group_num; i++) {
-    v_input = intput_ptr.load();
-    v_output = vgelu(v_input);
-    output_ptr.store(v_output);
-  }
-}
+    tops_dte_ctx_t ctx;
+    tops::dte_scope s(ctx);
 
-template <typename T, typename VT>
-__device__ __forceinline__ void unary_atomic(T* in, T* out, int len, UNARY_TYPE tp)
-{
-  tops_dte_ctx_t ctx;
-  ctx.init();
-  switch (tp) {
-    case UNARY_TYPE_NEG:
-      {
-        neg(out, in, len);
-        break;
-      }
-    case UNARY_TYPE_EXP:
-      {
-        exp(out, in, len);
-        break;
-      }
-    case UNARY_TYPE_LOG:
-      {
-        log(out, in, len);
-        break;
-      }
-    case UNARY_TYPE_SIN:
-      {
-        sin(out, in, len);
-        break;
-      }
-    case UNARY_TYPE_COS:
-      {
-        cos(out, in, len);
-        break;
-      }
-    case UNARY_TYPE_ABS:
-      {
-        abs(out, in, len);
-        break;
-      }
-    case UNARY_TYPE_SQUARE:
-      {
-        mul(out, in, in, len);
-        break;
-      }
-    case UNARY_TYPE_SQRT:
-      {
-        sqrt(out, in, len);
-        break;
-      }
-    case UNARY_TYPE_RSQRT:
-      {
-        rsqrt(out, in, len);
-        break;
-      }
-    case UNARY_TYPE_GELU:
-      {
-        gelu_kernel(out, in, len);
-        break;
-      }
-    case UNARY_TYPE_RELU:
-      {
-        relu_kernel<T, VT>(out, in , len);
-        break;
-      }
-    case UNARY_TYPE_ELU:
-      {
-        // elu(out, in, len); todo!()
-        break;
-      }
-    case UNARY_TYPE_SILU:
-      {
-        //(out, in, len); todo!()
-        break;
-      }
-    case UNARY_TYPE_TANH:
-      {
-        tanh(out, in, len);
-        break;
-      }
-    case UNARY_TYPE_RECIP:
-      {
-        reciprocal(out, in, len);
-        break;
-      }
-    case UNARY_TYPE_COPY:
-      {
-        tops::mdspan src_p(tops::Private, in, len);
-        tops::mdspan dst_p(tops::Private, out, len);
-        tops::memcpy(ctx, dst_p, src_p);
-        break;
-      }
-    default:
-      break;
-    }
-}
+    tops::mdspan l1_ids(tops::Private, ids_buffer, N);
+    tops::mdspan hbm_ids(tops::Global, ids, N);
+    tops::memcpy(ctx, l1_ids, hbm_ids);
 
-#define tile_size 0x8000
-#define PING_PONG_SIZE 2
-
-template <typename T, typename VT>
-__device__ void unary_kernel(T* in, T* out, int len, UNARY_TYPE tp) {
-  tops_dte_ctx_t ctxs_in[PING_PONG_SIZE];
-  tops_dte_ctx_t ctxs_out[PING_PONG_SIZE];
-  tops::event evs_in[PING_PONG_SIZE];
-  tops::event evs_out[PING_PONG_SIZE];
-  __local__ __valigned__ T in_buffer[PING_PONG_SIZE][tile_size];
-  __local__ __valigned__ T out_buffer[PING_PONG_SIZE][tile_size];
-  int N = len;
-  tops::mdspan output(tops::Global, out, N);
-
-  int thread_num = GetThreadNum();
-  int thread_id = GetThreadIdx();
-
-  int thread_off_leading = thread_id * tile_size;
-  int thread_len_leading =
-      N - thread_off_leading >= tile_size ? tile_size : N - thread_off_leading;
-  int thread_step = tile_size * thread_num;
-
-  int thread_off_leading_next = thread_off_leading + thread_step;
-  int thread_remain_leading = N - thread_off_leading_next;
-  int thread_len_leading_next =
-      thread_remain_leading >= tile_size ? tile_size : thread_remain_leading;
-
-  int pp_flag = 0;
-  tops::dte_scope s_in0(ctxs_in[0]);
-  tops::dte_scope s_in1(ctxs_in[1]);
-  tops::dte_scope s_out0(ctxs_out[0]);
-  tops::dte_scope s_out1(ctxs_out[1]);
-
-  // first config pingpong dma completely: d2s/s2d, linear copy
-  if (thread_len_leading > 0) {
-    ctxs_in[0].config_memcpy(
-        tops::mdspan(tops::Private, in_buffer[pp_flag], thread_len_leading),
-        tops::mdspan(tops::Global, in + thread_off_leading,
-                     thread_len_leading));
-
-    ctxs_out[0].config_memcpy(
-        tops::mdspan(tops::Global, out + thread_off_leading,
-                     thread_len_leading),
-        tops::mdspan(tops::Private, out_buffer[pp_flag], thread_len_leading));
-
-    evs_in[pp_flag] = ctxs_in[pp_flag].trigger();
-  }
-
-  if (thread_len_leading_next > 0) {
-    ctxs_in[1].config_memcpy(
-        tops::mdspan(tops::Private, in_buffer[1],
-                     thread_len_leading_next),
-        tops::mdspan(tops::Global, in + thread_off_leading_next,
-                     thread_len_leading_next));
-
-    ctxs_out[1].config_memcpy(
-        tops::mdspan(tops::Global, out + thread_off_leading_next,
-                     thread_len_leading_next),
-        tops::mdspan(tops::Private, out_buffer[1],
-                     thread_len_leading_next));
-  }
-
-  for (int i = thread_off_leading; i < N; i += thread_step) {
-    int pp_flag_next = 1 - pp_flag;
-    int pp_flag_prev = 1 - pp_flag;
-    int thread_off_next = i + thread_step;
-    int thread_remain_next = N - thread_off_next;
-    int thread_len = N - i >= tile_size ? tile_size : N - i;
-    int thread_len_next =
-        thread_remain_next >= tile_size ? tile_size : thread_remain_next;
-    if (thread_len_next > 0) {
-      evs_in[pp_flag_next] = ctxs_in[pp_flag_next].trigger();
-    }
-
-    int thread_off_next2 = i + thread_step * 2;
-    int thread_remain_next2 = N - thread_off_next2;
-    int thread_len_next2 =
-        thread_remain_next2 >= tile_size ? tile_size : thread_remain_next2;
-
-    if (thread_len > 0) {
-      evs_in[pp_flag].wait();
-    }
-
-    if (thread_len_next2 > 0) {
-      ctxs_in[pp_flag].config_memcpy(
-        tops::mdspan(tops::Private, in_buffer[pp_flag],
-                     thread_len_next2),
-        tops::mdspan(tops::Global, in + thread_off_next2,
-                     thread_len_next2));
-    }
-
-    // call atomic op here
-    if (thread_len > 0) {
-      unary_atomic<T, VT>(in_buffer[pp_flag], out_buffer[pp_flag],
-                               thread_len, tp);
-      evs_out[pp_flag] = ctxs_out[pp_flag].trigger();
-    }
-
-    if (i != thread_off_leading) {
-      int thread_off_prev = i - thread_step;
-      int thread_remain_prev = N - thread_off_prev;
-      int thread_len_prev =
-          thread_remain_prev >= tile_size ? tile_size : thread_remain_prev;
-      if (thread_len_prev > 0) {
-        evs_out[pp_flag_prev].wait();
-      }
-
-      if (thread_len_next > 0) {
-        ctxs_out[pp_flag_prev].config_memcpy(
-        tops::mdspan(tops::Global, out + thread_off_next,
-                     thread_len_next),
-        tops::mdspan(tops::Private, out_buffer[pp_flag_prev],
-                     thread_len_next));
-      }
-    }
-    pp_flag = 1 - pp_flag;
-  }
-
-  if (thread_len_leading > 0) {
-    evs_out[1 - pp_flag].wait();
-  }
-}
-
-#define UNARY_OP(TYPE, VT, FN_NAME, TP) \
-extern "C" __global__ void FN_NAME( \
-    const size_t numel, \
-    TYPE *inp, \
-    TYPE *out) \
-{ \
-    unary_kernel<TYPE, VT>(inp, out, numel, TP); \
-} \
-
-UNARY_OP(__bf16, vbfloat, uneg_bf16, UNARY_TYPE_NEG)
-UNARY_OP(__bf16, vbfloat, uexp_bf16, UNARY_TYPE_EXP)
-UNARY_OP(__bf16, vbfloat, ulog_bf16, UNARY_TYPE_LOG)
-UNARY_OP(__bf16, vbfloat, usin_bf16, UNARY_TYPE_SIN)
-UNARY_OP(__bf16, vbfloat, ucos_bf16, UNARY_TYPE_COS)
-UNARY_OP(__bf16, vbfloat, uabs_bf16, UNARY_TYPE_ABS)
-UNARY_OP(__bf16, vbfloat, usqr_bf16, UNARY_TYPE_SQUARE)
-UNARY_OP(__bf16, vbfloat, usqrt_bf16, UNARY_TYPE_SQRT)
-UNARY_OP(__bf16, vbfloat, ursqrt_bf16, UNARY_TYPE_RSQRT)
-UNARY_OP(__bf16, vbfloat, ugelu_bf16, UNARY_TYPE_GELU)
-UNARY_OP(__bf16, vbfloat, urelu_bf16, UNARY_TYPE_RELU) 
-UNARY_OP(__bf16, vbfloat, usilu_bf16, UNARY_TYPE_SILU) 
-UNARY_OP(__bf16, vbfloat, utanh_bf16, UNARY_TYPE_TANH) 
-UNARY_OP(__bf16, vbfloat, urecip_bf16, UNARY_TYPE_RECIP) 
-UNARY_OP(__bf16, vbfloat, ucopy_bf16, UNARY_TYPE_COPY) 
-UNARY_OP(__bf16, vbfloat, uelu_bf16, UNARY_TYPE_ELU) 
-
-UNARY_OP(__fp16, vhalf, uneg_f16, UNARY_TYPE_NEG)
-UNARY_OP(__fp16, vhalf, uexp_f16, UNARY_TYPE_EXP)
-UNARY_OP(__fp16, vhalf, ulog_f16, UNARY_TYPE_LOG)
-UNARY_OP(__fp16, vhalf, usin_f16, UNARY_TYPE_SIN)
-UNARY_OP(__fp16, vhalf, ucos_f16, UNARY_TYPE_COS)
-UNARY_OP(__fp16, vhalf, uabs_f16, UNARY_TYPE_ABS)
-UNARY_OP(__fp16, vhalf, usqr_f16, UNARY_TYPE_SQUARE)
-UNARY_OP(__fp16, vhalf, usqrt_f16, UNARY_TYPE_SQRT)
-UNARY_OP(__fp16, vhalf, ursqrt_f16, UNARY_TYPE_RSQRT)
-UNARY_OP(__fp16, vhalf, ugelu_f16, UNARY_TYPE_GELU)
-UNARY_OP(__fp16, vhalf, urelu_f16, UNARY_TYPE_RELU)
-UNARY_OP(__fp16, vhalf, usilu_f16, UNARY_TYPE_SILU)
-UNARY_OP(__fp16, vhalf, utanh_f16, UNARY_TYPE_TANH)
-UNARY_OP(__fp16, vhalf, urecip_f16, UNARY_TYPE_RECIP)
-UNARY_OP(__fp16, vhalf, ucopy_f16, UNARY_TYPE_COPY)
-UNARY_OP(__fp16, vhalf, uelu_f16, UNARY_TYPE_ELU)
-
-
-UNARY_OP(float, vfloat, uneg_f32, UNARY_TYPE_NEG)
-UNARY_OP(float, vfloat, uexp_f32, UNARY_TYPE_EXP)
-UNARY_OP(float, vfloat, ulog_f32, UNARY_TYPE_LOG)
-UNARY_OP(float, vfloat, usin_f32, UNARY_TYPE_SIN)
-UNARY_OP(float, vfloat, ucos_f32, UNARY_TYPE_COS)
-UNARY_OP(float, vfloat, uabs_f32, UNARY_TYPE_ABS)
-UNARY_OP(float, vfloat, usqr_f32, UNARY_TYPE_SQUARE)
-UNARY_OP(float, vfloat, usqrt_f32, UNARY_TYPE_SQRT)
-UNARY_OP(float, vfloat, ursqrt_f32, UNARY_TYPE_RSQRT)
-UNARY_OP(float, vfloat, ugelu_f32, UNARY_TYPE_GELU)
-UNARY_OP(float, vfloat, urelu_f32, UNARY_TYPE_RELU)
-UNARY_OP(float, vfloat, usilu_f32, UNARY_TYPE_SILU)
-UNARY_OP(float, vfloat, utanh_f32, UNARY_TYPE_TANH)
-UNARY_OP(float, vfloat, urecip_f32, UNARY_TYPE_RECIP)
-UNARY_OP(float, vfloat, ucopy_f32, UNARY_TYPE_COPY)
-UNARY_OP(float, vfloat, uelu_f32, UNARY_TYPE_ELU)
-```
-
-### Sample of Dot/Matmul kernel (TopsCC + Intrinsics) for cangle-gcu
-
-``` c++
-//m can be any size, k is divisible by tile_size
-template <typename T, typename VT, FP dot_intrinsic>
-__device__ void dot(
-  T *lhs,
-  T *rhs,
-  T *out,
-  int m,
-  int k,
-  int n) {
-  constexpr int vlen = tops::hvlength<VT>();
-  constexpr int tile_size = 1 * vlen;
-
-  int blockId = blockIdx.y * gridDim.x + blockIdx.x;
-  int threadId = blockId * blockDim.x + threadIdx.x;
-
-  int lstride = tile_size;
-  if (m < tile_size) { //for small m
-    lstride = m;
-  }
-
-  int blockIndex = threadId / (n / tile_size);
-  int threadIndex = threadId % (n / tile_size);
-//   printf("blockIndex %d, threadIndex %d", blockIndex, threadIndex);
-
-  __valigned__ T lhs_l1[lstride * tile_size];
-  __valigned__ T rhs_l1[tile_size * tile_size];
-
-  __valigned__ T out_l1[lstride * tile_size];
-  __valigned__ T temp[lstride * tile_size];
-
-  tops::mdspan out_l1_(out_l1, lstride, tile_size);
-
-  tops::mdspan srcl_l1(lhs_l1, lstride, tile_size);
-  tops::mdspan srcr_l1(rhs_l1, tile_size, tile_size);
-
-  tops::mdspan srcl_l3(lhs, m, k);
-  tops::mdspan srcr_l3(rhs, k, n);
-  tops::mdspan dst_l3(out, m, n);
-
-  tops_dte_ctx_t ctx;   //L1-L3
-  tops::dte_scope s(ctx);
-
-  int idx_y = blockIndex * lstride;
-  int idx_x = threadIndex * tile_size;
-
-  if (idx_y < m) { //parallel
-    int offsets_l[] = {idx_y, 0};
-    if (idx_x < n) { //parallel
-      tops::memset<T>(ctx, out_l1_, T(0)); //accumulation buffer
-      tops::mdspan dst_l1(out_l1, lstride, tile_size);
-      int offsets_r[] = {0, idx_x};
-
-      for (int i = 0; i < k/tile_size; i++) { //k must be divisible by tile_size
-        offsets_l[1] = i * tile_size;
-        tops::slice(ctx, srcl_l1, srcl_l3, offsets_l); //slicing the left operand
-        offsets_r[0] = i * tile_size;
-        tops::slice(ctx, srcr_l1, srcr_l3, offsets_r);  //slicing the right operand
-        // //dot_no_transpose
-        auto lhs_address = (__attribute__((address_space(5))) T *)(lhs_l1);
-        auto rhs_address = (__attribute__((address_space(5))) T *)(rhs_l1);
-        auto out_address = (__attribute__((address_space(5))) T *)(temp);
-
-        //call intrinsic core (two pieces of buffers, compute on L1)
-        dot_intrinsic(reinterpret_cast<long long>(lhs_address),
-                       reinterpret_cast<long long>(rhs_address),
-                       reinterpret_cast<long long>(out_address),
-                       lstride, //lstride can be any size <= tile_size
-                       tile_size,
-                       tile_size,
-                       0,
-                       1);
-
-        for (auto i = 0; i < lstride * tile_size; i++) { //result accumulation
-          out_l1[i] += temp[i];
+    int THREAD_STEP = 1;
+    int thread_step = 1;
+    if (N > MAX_THREADS) {
+      THREAD_STEP = N / MAX_THREADS;
+      thread_step = THREAD_STEP;
+      if (N % MAX_THREADS != 0) {
+        if (thread_id == MAX_THREADS - 1) {
+          thread_step += N % MAX_THREADS; //last thread also process remains
         }
       }
-      //L1->L3
-      int offsets_o[] = {idx_y, idx_x};
-      tops::deslice(ctx, dst_l3, dst_l1, offsets_o); //back to output buffer
-    } 
-  } 
+    }
+
+    for (int i = 0; i < thread_step; i++) {
+      int idx = thread_id * THREAD_STEP + i;
+      if (idx < N) {
+        for (unsigned int j = 0; j < left_size; ++j) {
+            int _idx = ids_buffer[idx];
+            tops::mdspan hbm_inp(tops::Global, inp + (j * dim_size + _idx) * right_size, right_size);
+            tops::mdspan hbm_out(tops::Global, out + (idx + j * N) * right_size, right_size);
+            tops::memcpy(ctx, hbm_out, hbm_inp);
+        }
+      }
+    }
 }
 
+#define IS_OP(TYPE, ID_TYPE, FN_NAME) \
+extern "C" __global__ void FN_NAME( \
+    const size_t id_numel, \
+    ID_TYPE* ids, \
+    TYPE *inp, \
+    TYPE *out, \
+    const size_t left_size, \
+    const size_t dim_size, \
+    const size_t right_size) \
+{ \
+    index_select_kernel<ID_TYPE, TYPE>(id_numel, ids, inp, out, left_size, dim_size, right_size); \
+} \
 
-extern "C" __global__ void dotllm_f16(const size_t m, const size_t k, const size_t n, tops::half *matA, tops::half *matB, tops::half* out)
-{
-    dot<tops::half, vhalf, kernel_dot_m_le256_fp16>(matA, matB, out, m, k, n);
+IS_OP(__bf16, int64_t, is_i64_bf16)
+IS_OP(__bf16, uint32_t, is_u32_bf16)
+IS_OP(__bf16, uint8_t, is_u8_bf16)
 
+IS_OP(__fp16, int64_t, is_i64_f16)
+IS_OP(__fp16, uint32_t, is_u32_f16)
+IS_OP(__fp16, uint8_t, is_u8_f16)
+
+IS_OP(float, int64_t, is_i64_f32)
+IS_OP(double, int64_t, is_i64_f64)
+IS_OP(uint8_t, int64_t, is_i64_u8)
+IS_OP(uint32_t, int64_t, is_i64_u32)
+IS_OP(int64_t, int64_t, is_i64_i64)
+
+IS_OP(float, uint32_t, is_u32_f32)
+IS_OP(double, uint32_t, is_u32_f64)
+IS_OP(uint8_t, uint32_t, is_u32_u8)
+IS_OP(int64_t, uint32_t, is_u32_i64)
+IS_OP(uint32_t, uint32_t, is_u32_u32)
+
+IS_OP(float, uint8_t, is_u8_f32)
+IS_OP(double, uint8_t, is_u8_f64)
+IS_OP(uint8_t, uint8_t, is_u8_u8)
+IS_OP(uint32_t, uint8_t, is_u8_u32)
+IS_OP(int64_t, uint8_t, is_u8_i64)
+```
+
+### Sample of Softmax kernel for cangle-gcu
+
+``` c++
+
+#define TILE_SIZE 1024 * 16
+template <typename T>
+__device__ void softmax_kernel(T *input, T* output, 
+    size_t chunks, size_t last_dim_size) {
+    __local__ __valigned__ float buffer1[TILE_SIZE];
+    __local__ __valigned__ float buffer2[TILE_SIZE];
+    __local__ __valigned__ T bufferTmp[TILE_SIZE];
+
+    tops_dte_ctx_t ctx;
+    tops::dte_scope s(ctx);
+
+    int thread_id = GetThreadIdx();
+    int MAX_THREADS = GetThreadNum();
+    int N = chunks;
+
+    int THREAD_STEP = 1;
+    int thread_step = 1;
+    if (N > MAX_THREADS) {
+      THREAD_STEP = N / MAX_THREADS;
+      thread_step = THREAD_STEP;
+      if (N % MAX_THREADS != 0) {
+        if (thread_id == MAX_THREADS - 1) {
+          thread_step += N % MAX_THREADS; //last thread also process remains
+        }
+      }
+    }
+
+    //yi = exp(xi - max)/(sum(exp(xi - max))
+    for (int i = 0; i < thread_step; i++) {
+      int offset = thread_id * THREAD_STEP + i;
+      if (offset >= N) {
+        break;
+      }
+      tops::mdspan l1_input(tops::Private, bufferTmp, last_dim_size);
+      tops::mdspan hbm_input(tops::Global, input + offset * last_dim_size, last_dim_size);
+
+      tops::memcpy(ctx, l1_input, hbm_input);
+      convert<float, T>(reinterpret_cast<float*>(buffer1), reinterpret_cast<T*>(bufferTmp), last_dim_size);
+      
+      atomic_reduce_max(reinterpret_cast<float*>(buffer2), reinterpret_cast<float*>(buffer1), last_dim_size);
+      
+      float max_value = buffer2[0];
+      sub(reinterpret_cast<float*>(buffer2), reinterpret_cast<float*>(buffer1), max_value, last_dim_size);
+      exp(reinterpret_cast<float*>(buffer1), reinterpret_cast<float*>(buffer2), last_dim_size);
+      atomic_reduce_sum(reinterpret_cast<float*>(buffer2), reinterpret_cast<float*>(buffer1), last_dim_size);
+      float sum_exp = buffer2[0];
+      tops::mdspan hbm_output(tops::Global, output + offset * last_dim_size, last_dim_size);
+      div(reinterpret_cast<float*>(buffer2), reinterpret_cast<float*>(buffer1), sum_exp, last_dim_size);
+      convert<T, float>(reinterpret_cast<T*>(bufferTmp), reinterpret_cast<float*>(buffer2), last_dim_size);
+      tops::mdspan l1_output(tops::Private, bufferTmp, last_dim_size);
+      tops::memcpy(ctx, hbm_output, l1_output);
+    }
 }
 
+extern "C" __global__ void softmax_f16(__fp16 *input, __fp16 *output,
+    size_t chunks, size_t last_dim_size) {
+      softmax_kernel<__fp16>(input, output, chunks, last_dim_size);
+}
+
+extern "C" __global__ void softmax_bf16(__bf16 *input, __bf16 *output,
+    size_t chunks, size_t last_dim_size) {
+      softmax_kernel<__bf16>(input, output, chunks, last_dim_size);
+}
+
+extern "C" __global__ void softmax_f32(float *input, float *output,
+    size_t chunks, size_t last_dim_size) {
+      softmax_kernel<float>(input, output, chunks, last_dim_size);
+}
+
+```
+
+### Sample test for softmax kernel in cangle-gcu
+``` rust
+fn test_softmax(dtype: DType, gcu_device: &Device) -> Result<()> {
+    let shape: Shape = (1, 32, 13).into();
+    let cpu_input = match dtype {
+        DType::F16 => {Tensor::rand(f16::from_f32(0.0f32), f16::from_f32(1.0f32), shape, &Device::Cpu)?},
+        DType::F32 => {Tensor::rand(0.0f32, 1.0, shape, &Device::Cpu)?},
+        DType::BF16 => {Tensor::rand(bf16::from_f32(0.0f32), bf16::from_f32(1.0f32), shape, &Device::Cpu)?},
+        _ => {panic!("Error type!");}
+    };
+    let gcu_input = cpu_input.to_device(&gcu_device)?;
+    
+    // let cpu_output = candle_nn::ops::softmax(&cpu_input, 1)?;
+    // let gcu_output = candle_nn::ops::softmax(&gcu_input, 1)?;
+    let shape: Shape = (1, 32 * 13).into();
+    let cpu_output = candle_nn::ops::softmax_last_dim(&cpu_input)?.reshape(&shape)?;
+    let gcu_output = candle_nn::ops::softmax_last_dim(&gcu_input)?.reshape(&shape)?;
+
+    assert_float_eq!(
+        cpu_output.to_dtype(DType::F32)?.to_vec2::<f32>()?[0],
+        gcu_output.to_dtype(DType::F32)?.to_vec2::<f32>()?[0],
+        abs_all <= 0.000001);
+
+    println!("Test softmax passed!");
+
+    Ok(())
+}
 ```
