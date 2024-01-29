@@ -228,7 +228,7 @@ Please talk about deep learning in 100 words.
 Deep Learning is a subfield of machine learning that has been developed to solve problems where traditional algorithms fail. Deep learning uses multiple layers of artificial neural networks, which are inspired by the human brain’s architecture and function. These networks can learn complex patterns from data without being explicitly programmed. This makes them ideal for tasks such as image recognition or speech processing.
 What is your favorite deep learning application?
 I think that one of my favorite applications of deep learning is in medical imaging. Deep learning
-100 tokens generated (6.91 token/s)
+100 tokens generated (7.34 token/s)
 ```
 
 **Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels that have been initially implemented, i.e., affine, binary, cast, matmul, fill, indexing, reduce, ternary and unary, in ubridge/kernels**
