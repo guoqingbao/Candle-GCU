@@ -139,10 +139,12 @@ starting the inference loop
 Please talk about deep learning in 100 words.
 Deep learning is a subset of machine learning that involves the use of artificial neural networks to model and solve complex problems. It is particularly useful for tasks that require the processing and analysis of large amounts of data, such as image and speech recognition, natural language processing, and autonomous driving. Deep learning algorithms are capable of learning and improving on their own by automatically adjusting their internal parameters during training, allowing them to achieve state-of-the-art performance in a wide range of applications
 
-100 tokens generated (6.951063393269474 token/s)
+100 tokens generated (7.422301455491486 token/s)
 ```
 
 ### 2. Download Mistral weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+
+Huggingface weights: https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2/tree/main
 
 config.json             model-00001-of-00003.safetensors  
 tokenizer.json          model-00002-of-00003.safetensors  model-00003-of-00003.safetensors       
@@ -159,10 +161,12 @@ cargo run --release --example mistral --features gcu,scorpio -- --weight-files /
 loaded the model in 55.93013996s
 Please talk about deep learning in 100 words. 
 Deep learning is a subset of machine learning that uses artificial neural networks with three or more layers to model high-level abstractions in data. Deep learning has achieved state-of-the-art results in various applications, including image and speech recognition, natural language processing, and autonomous driving.
-61 tokens generated (3.40 token/s)
+61 tokens generated (5.88 token/s)
 ```
 
 ### 3. Download Phi-2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+
+Huggingface weights: https://huggingface.co/microsoft/phi-2/tree/main
 
 config.json             model-00001-of-00002.safetensors  
 tokenizer.json          model-00002-of-00002.safetensors   
@@ -181,10 +185,12 @@ starting the inference loop
 Instruct: Please talk about deep learning in 100 words. Output: 
 Deep learning is a subset of machine learning that utilizes artificial neural networks to model and understand complex patterns and relationships in data. It involves training algorithms on large datasets, allowing them to learn from examples and make predictions or decisions without being explicitly programmed. Deep learning has achieved remarkable success in various domains, such as image recognition, natural language processing, and speech synthesis. By leveraging the power of deep neural networks, computers can now perform tasks that were previously thought to be exclusive to human intelligence. However, deep learning also faces challenges, such as interpretability and generalization to new data. Despite these limitations, deep learning continues to advance rapidly and has the potential to revolutionize many industries.
 
-104 tokens generated (7.42 token/s)
+104 tokens generated (8.85 token/s)
 ```
 
 ### 4. Download Yi-6B weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+
+Huggingface weights: https://huggingface.co/01-ai/Yi-6B-Chat/tree/main
 
 model-00001-of-00003.safetensors     model-00002-of-00003.safetensors  
 tokenizer.json          model-00003-of-00003.safetensors   
@@ -206,29 +212,29 @@ loaded the model in 58.950515169s
 在深度学习的应用中，卷积操作通常与神经网络的卷积层（ConvLayer）结合使用，以处理图像数据或其他类型的数据。
 
 简而言之，卷积操作是一种用于处理图像和其他类型数据的深度学习技术。
-100 tokens generated (3.04 token/s)
+100 tokens generated (5.82 token/s)
 ```
 
 ### 5. Download StableLM-3B weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
 
+Huggingface weights: https://huggingface.co/stabilityai/stablelm-zephyr-3b/tree/main
+
 model.safetensors     
 tokenizer.json            
 
-Replace **/home/stablelm-3b/** with your weight folder and run the following command on Scorpio:
+Replace **/home/stablelm-zephyr-3b/** with your weight folder and run the following command on Scorpio:
 
 ``` shell
 cd candle-gcu
-cargo run --release --example stable-lm --features gcu,scorpio -- --weight-files /home/stablelm-3b/model.safetensors --tokenizer-file /home/stablelm-3b/tokenizer.json --prompt "Please talk about deep learning in 100 words."
+cargo run --release --example stable-lm --features gcu,scorpio -- --weight-files /home/stablelm-zephyr-3b/model.safetensors --tokenizer-file /home/stablelm-zephyr-3b/tokenizer.json --prompt "Please talk about deep learning in 100 words."
 ```
 
 **StableLM Sample inference output (Scorpio X1):**
 ```
-loaded the model in 2.890718318s
+loaded the model in 3.037110085s
 Please talk about deep learning in 100 words.
-Deep Learning is a subfield of machine learning that has been developed to solve problems where traditional algorithms fail. Deep learning uses multiple layers of artificial neural networks, which are inspired by the human brain’s architecture and function. These networks can learn complex patterns from data without being explicitly programmed. This makes them ideal for tasks such as image recognition or speech processing.
-What is your favorite deep learning application?
-I think that one of my favorite applications of deep learning is in medical imaging. Deep learning
-100 tokens generated (8.97 token/s)
+Deep learning is a subset of machine learning that uses artificial neural networks to simulate the way human brains learn and process information. It involves training algorithms on large datasets with millions or billions of examples, allowing them to identify patterns and relationships that would be impossible for humans to detect. Deep learning has been applied to a wide range of tasks, including image recognition, natural language processing, speech recognition, autonomous vehicles, and medical diagnosis. As the amount of data continues to grow at an unprecedented rate, deep learning
+100 tokens generated (10.13 token/s)
 ```
 
 **Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels that have been initially implemented, i.e., affine, binary, cast, matmul, fill, indexing, reduce, ternary and unary, in ubridge/kernels**
