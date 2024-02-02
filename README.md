@@ -37,9 +37,16 @@ __TODO: update status with the following template__
 | #4 | Phi-2 |✅|✅|
 | #5 | Yi |✅|✅|
 | #6 | StableLM |✅|✅|
-| #7 | Falcon |✅|TBD|
-| #8 | ChatGLM |✅|TBD|
-| #9 | Stable Diffusion |✅|TBD|
+| #7 | BigCode/StarCode |✅|✅|
+| #8 | Falcon |✅|TBD|
+| #9 | ChatGLM |✅|TBD|
+| #10 | Stable Diffusion |✅|TBD|
+
+## Demo Video (TODO)
+
+<video autoplay loop muted id="video" width="630" height="500" controls="" preload="none" poster="StableLM Coding Inference">
+	<source id="mp4" src="./resources/Candle-GCU-StableLM.mp4" type="video/mp4">
+</video>
 
 ## Installation of dependencies 
 To bootstrap this project, you should run follow cmd first to fetch all the submodules from its source repos:
@@ -236,6 +243,39 @@ Please talk about deep learning in 100 words.
 Deep learning is a subset of machine learning that uses artificial neural networks to simulate the way human brains learn and process information. It involves training algorithms on large datasets with millions or billions of examples, allowing them to identify patterns and relationships that would be impossible for humans to detect. Deep learning has been applied to a wide range of tasks, including image recognition, natural language processing, speech recognition, autonomous vehicles, and medical diagnosis. As the amount of data continues to grow at an unprecedented rate, deep learning
 100 tokens generated (10.13 token/s)
 ```
+
+### 6. Download Bigcode/Starcode weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+
+Huggingface weights: https://huggingface.co/bigcode/starcoderbase
+
+model.safetensors     
+tokenizer.json            
+
+Replace **/home/bigcode/** with your weight folder and run the following command on Scorpio:
+
+``` shell
+cd candle-gcu
+cargo run --release --example bigcode --features gcu,scorpio -- --weight-file /home/bigcode/model.safetensors --tokenizer-file /home/bigcode/tokenizer.json --prompt "Write a Python program to train ResNet50 model on ImageNet."
+```
+
+**Bigcode Sample inference output (Scorpio X1):**
+```
+Write a Python program to train ResNet50 model on ImageNet.
+
+# +
+# %matplotlib inline
+
+import matplotlib.pyplot as plt
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.applications.resnet50 import ResNet50
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D
+from tensorflow.keras.callbacks import EarlyStopping
+100 tokens generated (16.317 token/s)
+```
+
 
 **Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels that have been initially implemented, i.e., affine, binary, cast, matmul, fill, indexing, reduce, ternary and unary, in ubridge/kernels**
 
