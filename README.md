@@ -36,7 +36,7 @@ __TODO: update status with the following template__
 | #3 | Mistral (v0.1, v0.2) |✅|✅|
 | #4 | Phi (v1, v1.5, v2) |✅|✅|
 | #5 | Yi |✅|✅|
-| #6 | StableLM (v1, v1-zephyr) |✅|✅|
+| #6 | StableLM (v1, v1-zephyr, v2, v2-zephyr) |✅|✅|
 | #7 | BigCode/StarCode |✅|✅|
 | #8 | Falcon |✅|TBD|
 | #9 | ChatGLM |✅|TBD|
@@ -223,7 +223,7 @@ loaded the model in 58.950515169s
 100 tokens generated (6.21 token/s)
 ```
 
-### 5. Download StableLM-3B weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+### 5.1 Download StableLM-3B weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
 
 Huggingface weights: https://huggingface.co/stabilityai/stablelm-zephyr-3b/tree/main
 
@@ -243,6 +243,50 @@ loaded the model in 3.037110085s
 Please talk about deep learning in 100 words.
 Deep learning is a subset of machine learning that uses artificial neural networks to simulate the way human brains learn and process information. It involves training algorithms on large datasets with millions or billions of examples, allowing them to identify patterns and relationships that would be impossible for humans to detect. Deep learning has been applied to a wide range of tasks, including image recognition, natural language processing, speech recognition, autonomous vehicles, and medical diagnosis. As the amount of data continues to grow at an unprecedented rate, deep learning
 100 tokens generated (14.18 token/s)
+```
+
+### 5.2 Download StableLM V2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+
+Huggingface weights: https://huggingface.co/stabilityai/stablelm-2-zephyr-1_6b
+
+model.safetensors     
+tokenizer.json            
+
+Replace **/home/stablelm-v2/** with your weight folder and run the following command on Scorpio:
+
+``` shell
+cd candle-gcu
+cargo run --release --example stable-lm --features gcu,scorpio -- --which v2-zephyr --weight-files /home/stablelm-v2/model.safetensors --tokenizer-file /home/stablelm-v2/tokenizer-gpt4.json --prompt "<|user|> 请使用不少于五百字来介绍一下深度学习。<|endoftext|> " --sample-len 1000
+```
+
+```
+loaded the model in 1.357156274s
+<|user|> 请使用不少于五百字来介绍一下深度学习。  在这个过程中，我会尝试简要地介绍以下几个方面：
+
+1. 深度学习的概念和历史背景。
+2. 如何选择并使用深度学习模型。
+3. 优缺点和局限性。
+4. 如何对比与传统方法的优势。
+5. 最近的一些热门的深度学习技术和应用案例。
+6. 深度学习在未来的发展方向和趋势。
+
+首先，我们需要了解深度学习的概念和历史背景。深度学习（Deep Learning）是一种自然语言处理、图像识别、机器视觉等领域的技术，旨在通过大规模数据和复杂结构来提高系统的能力。这个概念起源于1950年代的计算机科学家施泰勒·库罗（Stuart Russell）对深度神经网络的研究，后者是由卡尔·马克森（Carl S. Magnuson）提出的。
+
+然而，在1980年代，许多人开始关注这一领域，因为它可以帮助机器学习和生成自然语言。在2012年，马克森和施泰勒·库罗发表了《Deep Learning》的书籍，这是深度学习的诞生之一。
+
+接下来，我们需要探讨如何选择并使用深度学习模型。首先，你需要确定要做什么事情，然后找到合适的数据集和标签。然后，你可以根据不同类型的任务（例如文本分类、图像识别等）选择不同的深度学习模型。最后，你需要对这些模型进行训练和优化以获得良好的性能。
+
+然而，在使用深度学习时，我们也需要了解其优缺点和局限性。一方面，它可以帮助系统更好地理解和处理大量数据。另一方面，由于模型的复杂性，对于新或未知的问题，可能会出现难以预测的情况。此外，深度学习还存在计算资源消耗和稳定性问题，需要大量的硬件资源来运行。
+
+接下来，我们可以对比与传统方法的优势。首先，深度学习可以更好地处理复杂结构数据，并且能够生成更准确和自然的输出。其次，它可以在较小的数据集上得到良好的性能。
+
+最近，一些热门的深度学习技术和应用案例如：
+1. 模型拟合制（GAN）。
+2. 基于协同神经网络的自然语言理解系统。
+3. 人工智能平台，包括图像识别、机器学习等任务。
+
+最后，在未来的发展方向和趋势时，深度学习在计算机视觉、自然语言处理、医疗分析等领域都有着广泛应用前景。同时，随着技术的进步，我们也可以预测到更加智能和可靠的深度学习模型将在未来取得快速发展。
+936 tokens generated (14.28 token/s)
 ```
 
 ### 6. Download Bigcode/Starcode weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
