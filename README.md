@@ -33,10 +33,10 @@ __TODO: update status with the following template__
 |--|--|--|--|
 | #1 | LLAMA |✅|✅|
 | #2 | LLAMA2 |✅|✅|
-| #3 | Mistral |✅|✅|
-| #4 | Phi-2 |✅|✅|
+| #3 | Mistral (v0.1, v0.2) |✅|✅|
+| #4 | Phi (v1, v1.5, v2) |✅|✅|
 | #5 | Yi |✅|✅|
-| #6 | StableLM |✅|✅|
+| #6 | StableLM (v1, v1-zephyr) |✅|✅|
 | #7 | BigCode/StarCode |✅|✅|
 | #8 | Falcon |✅|TBD|
 | #9 | ChatGLM |✅|TBD|
@@ -183,7 +183,7 @@ Replace **/home/phi2/** with your weight folder and run the following command on
 
 ``` shell
 cd candle-gcu
-cargo run --release --example phi --features gcu,scorpio -- --model 2-new --weight-file /home/phi2/model-00001-of-00002.safetensors,/home/phi2/model-00002-of-00002.safetensors --tokenizer /home/phi2/tokenizer.json --config /home/phi2/config.json --prompt "Instruct: Please talk about deep learning in 100 words. Output: "
+cargo run --release --example phi --features gcu,scorpio -- --model 2 --weight-file /home/phi2/model-00001-of-00002.safetensors,/home/phi2/model-00002-of-00002.safetensors --tokenizer /home/phi2/tokenizer.json --config /home/phi2/config.json --prompt "Instruct: Please talk about deep learning in 100 words. Output: "
 ```
 
 **Phi-2 Sample inference output (Scorpio X1):**
@@ -234,7 +234,7 @@ Replace **/home/stablelm-zephyr-3b/** with your weight folder and run the follow
 
 ``` shell
 cd candle-gcu
-cargo run --release --example stable-lm --features gcu,scorpio -- --weight-files /home/stablelm-zephyr-3b/model.safetensors --tokenizer-file /home/stablelm-zephyr-3b/tokenizer.json --prompt "Please talk about deep learning in 100 words."
+cargo run --release --example stable-lm --features gcu,scorpio -- --which v1-zephyr --weight-files /home/stablelm-zephyr-3b/model.safetensors --tokenizer-file /home/stablelm-zephyr-3b/tokenizer.json --prompt "Please talk about deep learning in 100 words."
 ```
 
 **StableLM Sample inference output (Scorpio X1):**
@@ -242,7 +242,7 @@ cargo run --release --example stable-lm --features gcu,scorpio -- --weight-files
 loaded the model in 3.037110085s
 Please talk about deep learning in 100 words.
 Deep learning is a subset of machine learning that uses artificial neural networks to simulate the way human brains learn and process information. It involves training algorithms on large datasets with millions or billions of examples, allowing them to identify patterns and relationships that would be impossible for humans to detect. Deep learning has been applied to a wide range of tasks, including image recognition, natural language processing, speech recognition, autonomous vehicles, and medical diagnosis. As the amount of data continues to grow at an unprecedented rate, deep learning
-100 tokens generated (10.53 token/s)
+100 tokens generated (14.18 token/s)
 ```
 
 ### 6. Download Bigcode/Starcode weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
