@@ -42,10 +42,10 @@ __TODO: update status with the following template__
 | #9 | ChatGLM |✅|TBD|
 | #10 | Stable Diffusion |✅|TBD|
 
-## Demo Video (TODO)
+## Demo Video
 
 <video autoplay loop muted id="video" width="630" height="500" controls="" preload="none" poster="StableLM Coding Inference">
-	<source id="mp4" src="./resources/Candle-GCU-StableLM.mp4" type="video/mp4">
+	<source id="mp4" src="./resources/Candle-GCU-BigCode.mp4" type="video/mp4">
 </video>
 
 ## Installation of dependencies 
@@ -146,7 +146,7 @@ starting the inference loop
 Please talk about deep learning in 100 words.
 Deep learning is a subset of machine learning that involves the use of artificial neural networks to model and solve complex problems. It is particularly useful for tasks that require the processing and analysis of large amounts of data, such as image and speech recognition, natural language processing, and autonomous driving. Deep learning algorithms are capable of learning and improving on their own by automatically adjusting their internal parameters during training, allowing them to achieve state-of-the-art performance in a wide range of applications
 
-100 tokens generated (7.422301455491486 token/s)
+100 tokens generated (8.56 token/s)
 ```
 
 ### 2. Download Mistral weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -168,7 +168,7 @@ cargo run --release --example mistral --features gcu,scorpio -- --weight-files /
 loaded the model in 55.93013996s
 Please talk about deep learning in 100 words. 
 Deep learning is a subset of machine learning that uses artificial neural networks with three or more layers to model high-level abstractions in data. Deep learning has achieved state-of-the-art results in various applications, including image and speech recognition, natural language processing, and autonomous driving.
-61 tokens generated (5.88 token/s)
+61 tokens generated (6.20 token/s)
 ```
 
 ### 3. Download Phi-2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -187,12 +187,12 @@ cargo run --release --example phi --features gcu,scorpio -- --model 2-new --weig
 
 **Phi-2 Sample inference output (Scorpio X1):**
 ```
-loaded the model in 3.183058764s
+loaded the model in 2.73142246s
 starting the inference loop
 Instruct: Please talk about deep learning in 100 words. Output: 
-Deep learning is a subset of machine learning that utilizes artificial neural networks to model and understand complex patterns and relationships in data. It involves training algorithms on large datasets, allowing them to learn from examples and make predictions or decisions without being explicitly programmed. Deep learning has achieved remarkable success in various domains, such as image recognition, natural language processing, and speech synthesis. By leveraging the power of deep neural networks, computers can now perform tasks that were previously thought to be exclusive to human intelligence. However, deep learning also faces challenges, such as interpretability and generalization to new data. Despite these limitations, deep learning continues to advance rapidly and has the potential to revolutionize many industries.
+Deep learning is a subset of machine learning that utilizes artificial neural networks to model and understand complex patterns from data. Deep learning algorithms learn from large datasets by identifying trends and making predictions based on those trends. This allows deep learning models to recognize objects, classify data, and make decisions with high accuracy. Deep learning has been applied to various fields such as computer vision, natural language processing, and autonomous vehicles, where it has shown remarkable success in tasks like image recognition, speech recognition, and self-driving cars.
 
-104 tokens generated (8.85 token/s)
+104 tokens generated (10.45 token/s)
 ```
 
 ### 4. Download Yi-6B weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -219,7 +219,7 @@ loaded the model in 58.950515169s
 在深度学习的应用中，卷积操作通常与神经网络的卷积层（ConvLayer）结合使用，以处理图像数据或其他类型的数据。
 
 简而言之，卷积操作是一种用于处理图像和其他类型数据的深度学习技术。
-100 tokens generated (5.82 token/s)
+100 tokens generated (6.21 token/s)
 ```
 
 ### 5. Download StableLM-3B weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -241,7 +241,7 @@ cargo run --release --example stable-lm --features gcu,scorpio -- --weight-files
 loaded the model in 3.037110085s
 Please talk about deep learning in 100 words.
 Deep learning is a subset of machine learning that uses artificial neural networks to simulate the way human brains learn and process information. It involves training algorithms on large datasets with millions or billions of examples, allowing them to identify patterns and relationships that would be impossible for humans to detect. Deep learning has been applied to a wide range of tasks, including image recognition, natural language processing, speech recognition, autonomous vehicles, and medical diagnosis. As the amount of data continues to grow at an unprecedented rate, deep learning
-100 tokens generated (10.13 token/s)
+100 tokens generated (10.53 token/s)
 ```
 
 ### 6. Download Bigcode/Starcode weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -260,20 +260,30 @@ cargo run --release --example bigcode --features gcu,scorpio -- --weight-file /h
 
 **Bigcode Sample inference output (Scorpio X1):**
 ```
-Write a Python program to train ResNet50 model on ImageNet.
+loaded the model in 2.505882679s
+starting the inference loop
+Write a Python program using Pytorch to train ResNet50 on ImageNet.
 
 # +
-# %matplotlib inline
-
-import matplotlib.pyplot as plt
+import torch
+import torchvision
+import torchvision.transforms as transforms
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+import torchvision.datasets as datasets
+import torchvision.models as models
 import numpy as np
-import tensorflow as tf
-from tensorflow.keras.applications.resnet50 import ResNet50
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D
-from tensorflow.keras.callbacks import EarlyStopping
-100 tokens generated (16.317 token/s)
+import matplotlib.pyplot as plt
+
+# %matplotlib inline
+# -
+
+# ## Load the dataset
+
+# +
+transform = transforms.Compose([transforms.ToTensor(), transforms.
+100 tokens generated (18.013 token/s)
 ```
 
 
