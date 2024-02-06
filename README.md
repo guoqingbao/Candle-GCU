@@ -44,9 +44,10 @@ __TODO: update status with the following template__
 
 ## Demo Video
 
-<video autoplay loop muted id="video" width="630" height="500" controls="" preload="none" poster="StableLM Coding Inference">
+<!-- <video autoplay loop muted id="video" width="630" height="500" controls="" preload="none" poster="StableLM Coding Inference">
 	<source id="mp4" src="./resources/Candle-GCU-BigCode.mp4" type="video/mp4">
-</video>
+</video> -->
+<img src="./resources/Candle-GCU-BigCode.gif" width="75%" height="75%" >
 
 ## Installation of dependencies 
 To bootstrap this project, you should run follow cmd first to fetch all the submodules from its source repos:
