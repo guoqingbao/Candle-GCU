@@ -193,7 +193,7 @@ starting the inference loop
 Instruct: Please talk about deep learning in 100 words. Output: 
 Deep learning is a subset of machine learning that utilizes artificial neural networks to model and understand complex patterns from data. Deep learning algorithms learn from large datasets by identifying trends and making predictions based on those trends. This allows deep learning models to recognize objects, classify data, and make decisions with high accuracy. Deep learning has been applied to various fields such as computer vision, natural language processing, and autonomous vehicles, where it has shown remarkable success in tasks like image recognition, speech recognition, and self-driving cars.
 
-104 tokens generated (10.45 token/s)
+104 tokens generated (10.97 token/s)
 ```
 
 ### 4. Download Yi-6B weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -220,7 +220,7 @@ loaded the model in 58.950515169s
 在深度学习的应用中，卷积操作通常与神经网络的卷积层（ConvLayer）结合使用，以处理图像数据或其他类型的数据。
 
 简而言之，卷积操作是一种用于处理图像和其他类型数据的深度学习技术。
-100 tokens generated (6.21 token/s)
+100 tokens generated (6.47 token/s)
 ```
 
 ### 5.1 Download StableLM-3B weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -242,7 +242,7 @@ cargo run --release --example stable-lm --features gcu,scorpio -- --which v1-zep
 loaded the model in 3.037110085s
 Please talk about deep learning in 100 words.
 Deep learning is a subset of machine learning that uses artificial neural networks to simulate the way human brains learn and process information. It involves training algorithms on large datasets with millions or billions of examples, allowing them to identify patterns and relationships that would be impossible for humans to detect. Deep learning has been applied to a wide range of tasks, including image recognition, natural language processing, speech recognition, autonomous vehicles, and medical diagnosis. As the amount of data continues to grow at an unprecedented rate, deep learning
-100 tokens generated (14.18 token/s)
+100 tokens generated (15.77 token/s)
 ```
 
 ### 5.2 Download StableLM V2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -286,7 +286,7 @@ loaded the model in 1.357156274s
 3. 人工智能平台，包括图像识别、机器学习等任务。
 
 最后，在未来的发展方向和趋势时，深度学习在计算机视觉、自然语言处理、医疗分析等领域都有着广泛应用前景。同时，随着技术的进步，我们也可以预测到更加智能和可靠的深度学习模型将在未来取得快速发展。
-936 tokens generated (14.28 token/s)
+936 tokens generated (14.72 token/s)
 ```
 
 ### 6. Download Bigcode/Starcode weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -328,7 +328,7 @@ import matplotlib.pyplot as plt
 
 # +
 transform = transforms.Compose([transforms.ToTensor(), transforms.
-100 tokens generated (18.013 token/s)
+100 tokens generated (18.396 token/s)
 ```
 
 
