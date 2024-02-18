@@ -31,16 +31,17 @@ Currently, candle-gcu supports following models in candle-transformers. Notably,
 __TODO: update status with the following template__
 | LLM Model ID | LLM Model | Supporting GPU | Supporting Scorpio
 |--|--|--|--|
-| #1 | LLAMA |✅|✅|
-| #2 | LLAMA2 |✅|✅|
-| #3 | Mistral (v0.1, v0.2) |✅|✅|
-| #4 | Phi (v1, v1.5, v2) |✅|✅|
-| #5 | Yi |✅|✅|
-| #6 | StableLM (v1, v1-zephyr, v2, v2-zephyr) |✅|✅|
-| #7 | BigCode/StarCode |✅|✅|
-| #8 | Falcon |✅|TBD|
-| #9 | ChatGLM |✅|TBD|
-| #10 | Stable Diffusion |✅|TBD|
+| #1 | LLAMA/LLAMA2 |✅|✅|
+| #2 | Mistral (v0.1, v0.2) |✅|✅|
+| #3 | Phi (v1, v1.5, v2) |✅|✅|
+| #4 | Yi |✅|✅|
+| #5 | StableLM (v1, v1-zephyr, v2, v2-zephyr) |✅|✅|
+| #6 | BigCode/StarCode |✅|✅|
+| #7 | ChatGLM |✅|TBD|
+| #8 | QWen (v2) |✅|TBD|
+| #9 | RWKV (v5) |✅|TBD|
+| #10 | Falcon |✅|TBD|
+| #11 | Stable Diffusion (v1, v1.5, v2) |✅|TBD|
 
 ## Demo Video
 
