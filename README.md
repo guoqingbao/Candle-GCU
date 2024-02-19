@@ -107,7 +107,7 @@ __Write the following unfinished GCU kernerls defined in Candle (written in Tops
 
 **Affine** ✅: $\textcolor{red}{\text{affine}}$
 
-**GEMM/Matmul/Dot** ✅: $\textcolor{red}{\text{gemm}}$/$\textcolor{red}{\text{matmul}}$/$\textcolor{red}{\text{dot}}$
+**GEMM/Matmul/Dot** ✅: $\textcolor{red}{\text{gemm/matmul/dot}}$
 
 $\textcolor{green}{\text{Note}}$: $\textcolor{red}{\text{micro-kernels in red for large language models}}$, e.g., llama, chatglm, falcon, etc.
 
