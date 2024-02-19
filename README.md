@@ -93,7 +93,7 @@ __Write the following unfinished GCU kernerls defined in Candle (written in Tops
 
 **Ternary** ✅: $\textcolor{red}{\text{where}}$
 
-**Reduce** ✅: sum, fast_min, $\textcolor{red}{\text{fast\_max}}$, fast_argmin, fast_argmax, $\textcolor{red}{\text{fast\_sum}}$
+**Reduce** ✅: sum, fast_min, $`\textcolor{red}{\text{fast\_max}}`$, fast_argmin, fast_argmax, $`\textcolor{red}{\text{fast\_sum}}`$
 
 **Indexing** ✅: $\textcolor{red}{\text{is}}$, gather, ia, sa
 
