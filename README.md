@@ -37,7 +37,7 @@ __TODO: update status with the following template__
 | #4 | Yi |✅|✅|
 | #5 | StableLM (v1, v1-zephyr, v2, v2-zephyr) |✅|✅|
 | #6 | BigCode/StarCode |✅|✅|
-| #7 | ChatGLM (v3) |✅|TBD|
+| #7 | ChatGLM (v3) |✅|✅|
 | #8 | QWen (v2) |✅|TBD|
 | #9 | RWKV (v5) |✅|TBD|
 | #10 | Falcon |✅|TBD|
