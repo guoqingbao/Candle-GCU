@@ -38,7 +38,7 @@ __TODO: update status with the following template__
 | #5 | StableLM (v1, v1-zephyr, v2, v2-zephyr) |✅|✅|
 | #6 | BigCode/StarCode |✅|✅|
 | #7 | ChatGLM (v3) |✅|✅|
-| #8 | QWen (v2) |✅|TBD|
+| #8 | QWen (v2) |✅|✅|
 | #9 | RWKV (v5) |✅|TBD|
 | #10 | Falcon |✅|TBD|
 | #11 | Stable Diffusion (v1, v1.5, v2) |✅|TBD|
@@ -330,6 +330,51 @@ import matplotlib.pyplot as plt
 # +
 transform = transforms.Compose([transforms.ToTensor(), transforms.
 100 tokens generated (20.229 token/s)
+```
+
+### 7. Download QWen weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+
+Huggingface weights: https://huggingface.co/Qwen/Qwen-1_8B-Chat/tree/main
+
+model.safetensors     
+tokenizer.json            
+
+Replace **/home/qwen-1.8b/** with your weight folder and run the following command on Scorpio:
+
+``` shell
+cd candle-gcu
+cargo run --release --example qwen --features gcu,scorpio -- --model 1.8b --weight-files /home/qwen-1.8b/model.safetensors --tokenizer-file /home/qwen-1.8b/tokenizer.json --prompt "请使用不少于五百字来介绍一下深度学习。" --sample-len 1000
+```
+
+**QWen Sample inference output (Scorpio X1):**
+```
+loaded the model in 1.587586897s
+请使用不少于五百字来介绍一下深度学习。 深度学习是一种机器学习技术，它模仿人脑神经网络的结构和功能，通过多层非线性变换和大量数据的学习，实现对复杂问题的自动识别、分类、聚类等任务。深度学习的核心思想是“反向传播”，即通过计算损失函数（如交叉熵）与预测结果之间的差异，来调整模型参数以最小化损失函数。
+
+深度学习的基本结构包括输入层、隐藏层和输出层。输入层接收原始数据，隐藏层则包含多个神经元，每个神经元都连接到前一层的神经元，形成多层非线性变换。在每一层，神经元都会根据输入数据进行激活函数（如sigmoid或ReLU）的处理，并通过权重矩阵和偏置向量来计算输出结果。这些输出结果会作为下一层神经元的输入，形成一个循环，直到达到输出层。
+
+深度学习的主要优点包括：
+
+1. 自动特征提取：深度学习可以自动从原始数据中提取有用的特征，而无需手动设计特征工程过程。这使得深度学习在图像识别、语音识别、自然语言处理等领域具有显著的优势。
+
+2. 大规模数据处理能力：深度学习能够处理大量的非线性数据，并且可以通过多层神经网络来模拟人脑的复杂结构和功能，从而实现对大规模数据的学习和分析。
+
+3. 高精度预测：深度学习在许多任务中都取得了优秀的性能，如图像分类、语音识别、自然语言处理等。这是因为深度学习模型能够自动提取特征，避免了手动设计特征工程过程中的过拟合问题，从而提高了预测的准确性。
+
+4. 可解释性：深度学习模型通常具有较好的可解释性，可以通过可视化结果来理解模型的工作原理和决策过程。这对于一些需要解释决策结果的应用场景（如医疗诊断、金融风险评估等）非常有用。
+
+然而，深度学习也存在一些挑战，包括：
+
+1. 训练时间和计算资源需求大：深度学习的训练过程通常需要大量的数据和计算资源，这在处理大规模数据时可能会带来性能瓶颈。
+
+2. 模型复杂性高：深度学习模型通常包含大量的神经元和参数，这使得模型的复杂度较高，容易出现过拟合、欠拟合等问题。
+
+3. 隐私保护问题：深度学习模型往往需要大量的训练数据，这些数据可能包含用户的个人信息。因此，如何在保证模型性能的同时，保护用户隐私是一个重要的挑战。
+
+4. 算法选择和优化：深度学习算法的选择和优化也是一个复杂的问题，包括选择合适的激活函数、优化损失函数、调整网络结构等。
+
+总的来说，深度学习是一种强大的机器学习技术，它通过模仿人脑神经网络的结构和功能，实现了对复杂问题的自动识别、分类、聚类等任务。然而，深度学习也存在一些挑战，需要我们在实际应用中不断探索和解决。
+610 tokens generated (15.19 token/s)
 ```
 
 
