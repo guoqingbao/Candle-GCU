@@ -50,6 +50,8 @@ __TODO: update status with the following template__
 </video> -->
 <img src="./resources/Candle-GCU-BigCode.gif" width="75%" height="75%" >
 
+<img src="./resources/Candle-GCU-QWen.gif" width="75%" height="75%" >
+
 ## Installation of dependencies 
 To bootstrap this project, you should run follow cmd first to fetch all the submodules from its source repos:
 
