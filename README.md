@@ -39,9 +39,10 @@ __TODO: update status with the following template__
 | #6 | BigCode/StarCode |✅|✅|
 | #7 | ChatGLM (v3) |✅|✅|
 | #8 | QWen (v2) |✅|✅|
-| #9 | RWKV (v5) |✅|TBD|
-| #10 | Falcon |✅|TBD|
-| #11 | Stable Diffusion (v1, v1.5, v2) |✅|TBD|
+| #9 | Google Gemma (2b, 7b) |✅|✅|
+| #10 | RWKV (v5) |✅|TBD|
+| #11 | Falcon |✅|TBD|
+| #12 | Stable Diffusion (v1, v1.5, v2) |✅|TBD|
 
 ## Demo Video
 
@@ -128,7 +129,7 @@ $\textcolor{green}{\text{Note}}$: $\textcolor{red}{\text{micro-kernels in red fo
 
 ✅: Naive implementation done.
 
-## Sample LLM Inference (LLaMa2, Mistral, Phi-2, Yi, StableLM)
+## Sample LLM Inference (LLaMa2, Mistral, Phi-2, Yi, BigCode, StableLM, QWen, Gemma)
 ### 1. Download LLaMa2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
 
 config.json             model-00001-of-00002.safetensors   
@@ -379,6 +380,30 @@ loaded the model in 1.587586897s
 610 tokens generated (15.19 token/s)
 ```
 
+### 8. Download Gemma weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+
+Huggingface weights: https://huggingface.co/google/gemma-2b-it
+
+model-00001-of-00002.safetensors
+model-00002-of-00002.safetensors
+tokenizer.json        
+config.json    
+
+Replace **/home/gemma-2b/** with your weight folder and run the following command on Scorpio:
+
+``` shell
+cd candle-gcu
+cargo run --release --example gemma --features gcu,scorpio -- --weight-files /home/gemma-2b/model-00001-of-00002.safetensors,/home/gemma-2b/model-00002-of-00002.safetensors --tokenizer-file /home/gemma-2b/tokenizer.json --config-file /home/gemma-2b/config.json --prompt "Please talk about deep learning in 100 words." --sample-len 100
+```
+
+**Gemma Sample inference output (Scorpio X1):**
+```
+loaded the model in 2.830523715s
+Please talk about deep learning in 100 words.
+
+Deep learning is a subfield of machine learning that allows computers to learn from data without explicit programming. It involves the creation of artificial neural networks (ANNs) that mimic the structure and function of the human brain. These ANNs are trained on vast datasets, enabling them to identify patterns, make predictions, and solve problems. Deep learning has revolutionized various industries, including healthcare, finance, and transportation, by automating tasks, improving decision-making, and uncovering hidden insights.(99
+100 tokens generated (19.30 token/s)
+```
 
 **Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels that have been initially implemented, i.e., affine, binary, cast, matmul, fill, indexing, reduce, ternary and unary, in ubridge/kernels**
 
