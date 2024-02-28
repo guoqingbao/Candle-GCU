@@ -238,7 +238,7 @@ Replace **/home/stablelm-zephyr-3b/** with your weight folder and run the follow
 
 ``` shell
 cd candle-gcu
-cargo run --release --example stable-lm --features gcu,scorpio -- --which v1-zephyr --weight-files /home/stablelm-zephyr-3b/model.safetensors --tokenizer-file /home/stablelm-zephyr-3b/tokenizer.json --prompt "Please talk about deep learning in 100 words."
+cargo run --release --example stable-lm --features gcu,scorpio -- --which v1-zephyr --weight-files /home/stablelm-zephyr-3b/model.safetensors --tokenizer-file /home/stablelm-zephyr-3b/tokenizer.json --config /home/stablelm-zephyr-3b/config.json --prompt "Please talk about deep learning in 100 words."
 ```
 
 **StableLM Sample inference output (Scorpio X1):**
