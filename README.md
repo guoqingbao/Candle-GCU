@@ -241,12 +241,12 @@ cd candle-gcu
 cargo run --release --example stable-lm --features gcu,scorpio -- --which v1-zephyr --weight-files /home/stablelm-zephyr-3b/model.safetensors --tokenizer-file /home/stablelm-zephyr-3b/tokenizer.json --config /home/stablelm-zephyr-3b/config.json --prompt "Please talk about deep learning in 100 words."
 ```
 
-**StableLM Sample inference output (Scorpio X1):**
+**StableLM-v1 Sample inference output (Scorpio X1, BF16):**
 ```
-loaded the model in 3.037110085s
+loaded the model in 3.80736883s
 Please talk about deep learning in 100 words.
 Deep learning is a subset of machine learning that uses artificial neural networks to simulate the way human brains learn and process information. It involves training algorithms on large datasets with millions or billions of examples, allowing them to identify patterns and relationships that would be impossible for humans to detect. Deep learning has been applied to a wide range of tasks, including image recognition, natural language processing, speech recognition, autonomous vehicles, and medical diagnosis. As the amount of data continues to grow at an unprecedented rate, deep learning
-100 tokens generated (15.77 token/s)
+100 tokens generated (14.78 token/s)
 ```
 
 ### 5.2 Download StableLM V2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -263,34 +263,28 @@ cd candle-gcu
 cargo run --release --example stable-lm --features gcu,scorpio -- --which v2-zephyr --weight-files /home/stablelm-v2/model.safetensors --tokenizer-file /home/stablelm-v2/tokenizer-gpt4.json --prompt "<|user|> 请使用不少于五百字来介绍一下深度学习。<|endoftext|> " --sample-len 1000
 ```
 
+**StableLM-v2 Sample inference output (Scorpio X1, BF16):**
 ```
-loaded the model in 1.357156274s
-<|user|> 请使用不少于五百字来介绍一下深度学习。  在这个过程中，我会尝试简要地介绍以下几个方面：
+loaded the model in 1.387850061s
+<|user|> 请使用不少于五百字来介绍一下深度学习。 五百字以下，我将简要介绍深度学习（Deep Learning）以及其在现代计算机科学和工程领域中的应用。
 
-1. 深度学习的概念和历史背景。
-2. 如何选择并使用深度学习模型。
-3. 优缺点和局限性。
-4. 如何对比与传统方法的优势。
-5. 最近的一些热门的深度学习技术和应用案例。
-6. 深度学习在未来的发展方向和趋势。
+首先，我们需要了解到深度学习是指一种非常强大、灵活且高效的数据处理方法。它利用神经网络结构来模拟人类智能和自然语言处理等领域的功能，通过训练过程中学习到不断变化的权重值以及梯度下降结果。
 
-首先，我们需要了解深度学习的概念和历史背景。深度学习（Deep Learning）是一种自然语言处理、图像识别、机器视觉等领域的技术，旨在通过大规模数据和复杂结构来提高系统的能力。这个概念起源于1950年代的计算机科学家施泰勒·库罗（Stuart Russell）对深度神经网络的研究，后者是由卡尔·马克森（Carl S. Magnuson）提出的。
+深度学习可以被分为以下几种：
 
-然而，在1980年代，许多人开始关注这一领域，因为它可以帮助机器学习和生成自然语言。在2012年，马克森和施泰勒·库罗发表了《Deep Learning》的书籍，这是深度学习的诞生之一。
+1. 基于神经网络的自然语言处理（NLP）：通过训练大量文本数据，模拟出人类能够理解和生成的智能性。
+2. 基于神经网络的图像识别、分类和分析（CV、AR）：利用深度学习技术对图像进行高效的检测、识别和预测，提高了图像处理速度。
+3. 基于神经网络的机器人控制（MR）：通过深度学习技术，可以训练出智能行动规则，使机器人在实际操作中更加自然和准确。
+4. 基于神经网络的物联网（IoT）安全：利用深度学习技术对物联网设备进行安全检测、识别和预防，提高了物联网安全性。
 
-接下来，我们需要探讨如何选择并使用深度学习模型。首先，你需要确定要做什么事情，然后找到合适的数据集和标签。然后，你可以根据不同类型的任务（例如文本分类、图像识别等）选择不同的深度学习模型。最后，你需要对这些模型进行训练和优化以获得良好的性能。
+现代计算机科学和工程领域已经开始应用深度学习技术。例如：
 
-然而，在使用深度学习时，我们也需要了解其优缺点和局限性。一方面，它可以帮助系统更好地理解和处理大量数据。另一方面，由于模型的复杂性，对于新或未知的问题，可能会出现难以预测的情况。此外，深度学习还存在计算资源消耗和稳定性问题，需要大量的硬件资源来运行。
+1. 自动化系统：通过深度学习技术，可以更好地识别和处理自动化系统的错误，并提高其可靠性。
+2. 医学疗效评估（EHR）：利用深度学习技术，可以更好地预测患者的健康状况和治疗方案。
+3. 轨通信系统：通过深度学习技术，可以提高电子邮件、电话和视频会议的质量。
 
-接下来，我们可以对比与传统方法的优势。首先，深度学习可以更好地处理复杂结构数据，并且能够生成更准确和自然的输出。其次，它可以在较小的数据集上得到良好的性能。
-
-最近，一些热门的深度学习技术和应用案例如：
-1. 模型拟合制（GAN）。
-2. 基于协同神经网络的自然语言理解系统。
-3. 人工智能平台，包括图像识别、机器学习等任务。
-
-最后，在未来的发展方向和趋势时，深度学习在计算机视觉、自然语言处理、医疗分析等领域都有着广泛应用前景。同时，随着技术的进步，我们也可以预测到更加智能和可靠的深度学习模型将在未来取得快速发展。
-936 tokens generated (14.72 token/s)
+总之，深度学习是一种非常强大、灵活且高效的数据处理方法，已经在现代计算机科学和工程领域中得到了广泛应用。它可以提供更好的解决方案，同时也能够带来更多的可靠性、准确性和灵活性。
+673 tokens generated (15.04 token/s)
 ```
 
 ### 6. Download Bigcode/Starcode weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -349,35 +343,21 @@ cd candle-gcu
 cargo run --release --example qwen --features gcu,scorpio -- --model 1.8b --weight-files /home/qwen-1.8b/model.safetensors --tokenizer-file /home/qwen-1.8b/tokenizer.json --prompt "请使用不少于五百字来介绍一下深度学习。" --sample-len 1000
 ```
 
-**QWen Sample inference output (Scorpio X1):**
+**QWen Sample inference output (Scorpio X1, BF16):**
 ```
-loaded the model in 1.587586897s
-请使用不少于五百字来介绍一下深度学习。 深度学习是一种机器学习技术，它模仿人脑神经网络的结构和功能，通过多层非线性变换和大量数据的学习，实现对复杂问题的自动识别、分类、聚类等任务。深度学习的核心思想是“反向传播”，即通过计算损失函数（如交叉熵）与预测结果之间的差异，来调整模型参数以最小化损失函数。
+loaded the model in 4.502331669s
+请使用五百字来介绍一下深度学习。 深度学习是一种人工智能技术，它模仿人脑神经网络的结构和功能，通过多层非线性变换和大量数据的学习，实现对复杂问题的自动识别、分类、预测和生成等任务。它的核心思想是构建多层次的神经网络模型，每一层都包含多个隐藏单元，这些隐藏单元之间的连接权重可以随着训练过程进行调整，以适应不同的输入特征和输出目标。
 
-深度学习的基本结构包括输入层、隐藏层和输出层。输入层接收原始数据，隐藏层则包含多个神经元，每个神经元都连接到前一层的神经元，形成多层非线性变换。在每一层，神经元都会根据输入数据进行激活函数（如sigmoid或ReLU）的处理，并通过权重矩阵和偏置向量来计算输出结果。这些输出结果会作为下一层神经元的输入，形成一个循环，直到达到输出层。
+深度学习的基本流程包括数据预处理、模型选择、模型训练和模型评估四个步骤。首先，需要对原始数据进行清洗和转换，以便于后续的神经网络模型训练。然后，根据任务需求选择合适的深度学习模型，如卷积神经网络（CNN）、循环神经网络（RNN）或长短时记忆网络（LSTM）。在模型选择阶段，通常会考虑模型的复杂度、训练速度、泛化能力等因素，并结合实际应用场景进行权衡。
 
-深度学习的主要优点包括：
+接下来，通过收集和标注大量的数据集，对选定的深度学习模型进行训练。在训练过程中，模型会根据输入数据的特征和目标变量，自动调整隐藏单元之间的连接权重，以最小化损失函数（如交叉熵损失）并获得最优参数。训练过程通常包括前向传播、反向传播和优化算法等步骤，其中前向传播用于计算模型预测结果，反向传播用于更新模型参数，优化算法则用于调整模型参数以提高其性能。
 
-1. 自动特征提取：深度学习可以自动从原始数据中提取有用的特征，而无需手动设计特征工程过程。这使得深度学习在图像识别、语音识别、自然语言处理等领域具有显著的优势。
+在模型训练完成后，需要对模型进行评估，以检验其在新数据集上的泛化能力。常用的评估指标包括准确率、精确率、召回率和F1分数等。其中，准确率是指模型预测正确的样本数占总样本数的比例；精确率是指模型预测为正例的样本中，真正为正例的样本数占预测为正例的样本数的比例；召回率是指模型预测为正例的样本中，真正为正例的样本数占所有被预测为正例的样本数的比例；F1分数是准确率和精确率的调和平均值，用于综合评估模型的性能。
 
-2. 大规模数据处理能力：深度学习能够处理大量的非线性数据，并且可以通过多层神经网络来模拟人脑的复杂结构和功能，从而实现对大规模数据的学习和分析。
+深度学习在图像识别、语音识别、自然语言处理、推荐系统等领域有着广泛的应用。例如，在图像识别中，深度学习可以实现对图像特征的自动提取和分类，如卷积神经网络（CNN）可以有效地检测图像中的物体、人脸等；在语音识别中，深度学习可以实现对语音信号的高精度识别，如循环神经网络（RNN）可以捕捉语音信号的时间序列信息；在自然语言处理中，深度学习可以实现对文本数据的自动分类和生成，如长短时记忆网络（LSTM）可以有效地处理长篇文本中的语义关系。
 
-3. 高精度预测：深度学习在许多任务中都取得了优秀的性能，如图像分类、语音识别、自然语言处理等。这是因为深度学习模型能够自动提取特征，避免了手动设计特征工程过程中的过拟合问题，从而提高了预测的准确性。
-
-4. 可解释性：深度学习模型通常具有较好的可解释性，可以通过可视化结果来理解模型的工作原理和决策过程。这对于一些需要解释决策结果的应用场景（如医疗诊断、金融风险评估等）非常有用。
-
-然而，深度学习也存在一些挑战，包括：
-
-1. 训练时间和计算资源需求大：深度学习的训练过程通常需要大量的数据和计算资源，这在处理大规模数据时可能会带来性能瓶颈。
-
-2. 模型复杂性高：深度学习模型通常包含大量的神经元和参数，这使得模型的复杂度较高，容易出现过拟合、欠拟合等问题。
-
-3. 隐私保护问题：深度学习模型往往需要大量的训练数据，这些数据可能包含用户的个人信息。因此，如何在保证模型性能的同时，保护用户隐私是一个重要的挑战。
-
-4. 算法选择和优化：深度学习算法的选择和优化也是一个复杂的问题，包括选择合适的激活函数、优化损失函数、调整网络结构等。
-
-总的来说，深度学习是一种强大的机器学习技术，它通过模仿人脑神经网络的结构和功能，实现了对复杂问题的自动识别、分类、聚类等任务。然而，深度学习也存在一些挑战，需要我们在实际应用中不断探索和解决。
-610 tokens generated (15.19 token/s)
+总的来说，深度学习是一种强大的人工智能技术，它通过构建多层次的神经网络模型，实现了对复杂问题的自动识别、分类、预测和生成等任务。随着计算能力的提升和数据量的增加，深度学习在各个领域的应用将越来越广泛，为人类社会的发展带来更多的机遇和挑战。
+631 tokens generated (14.91 token/s)
 ```
 
 ### 8. Download Gemma weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
