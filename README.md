@@ -144,14 +144,13 @@ cargo run --release --example llama --features gcu,scorpio -- --local-weights /h
 
 **LLaMa2-7B Sample inference output (Scorpio X1):**
 ```
-...
 loading the model weights from meta-llama/Llama-2-7b-hf
 building the model
 starting the inference loop
 Please talk about deep learning in 100 words.
 Deep learning is a subset of machine learning that involves the use of artificial neural networks to model and solve complex problems. It is particularly useful for tasks that require the processing and analysis of large amounts of data, such as image and speech recognition, natural language processing, and autonomous driving. Deep learning algorithms are capable of learning and improving on their own by automatically adjusting their internal parameters during training, allowing them to achieve state-of-the-art performance in a wide range of applications
 
-100 tokens generated (8.56 token/s)
+100 tokens generated (8.680734699696703 token/s)
 ```
 
 ### 2. Download Mistral weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -170,10 +169,9 @@ cargo run --release --example mistral --features gcu,scorpio -- --weight-files /
 
 **Mistral-7B Sample inference output (Scorpio X1):**
 ```
-loaded the model in 55.93013996s
-Please talk about deep learning in 100 words. 
-Deep learning is a subset of machine learning that uses artificial neural networks with three or more layers to model high-level abstractions in data. Deep learning has achieved state-of-the-art results in various applications, including image and speech recognition, natural language processing, and autonomous driving.
-61 tokens generated (6.20 token/s)
+loaded the model in 58.479424355s
+Please talk about deep learning in 100 words. Deep learning is a subset of machine learning that uses artificial neural networks with three or more layers to model high-level abstractions in data. Deep learning has achieved state-of-the-art results in various applications, including image and speech recognition, natural language processing, and autonomous driving.
+61 tokens generated (8.71 token/s)
 ```
 
 ### 3. Download Phi-2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -211,20 +209,26 @@ Replace **/home/yi-6b/** with your weight folder and run the following command o
 
 ``` shell
 cd candle-gcu
-cargo run --release --example yi --features gcu,scorpio -- --which 6b --weight-files /home/yi-6b/model-00001-of-00003.safetensors,/home/yi-6b/model-00002-of-00003.safetensors,/home/yi-6b/model-00003-of-00003.safetensors --tokenizer-file /home/yi-6b/tokenizer.json --prompt "请简单介绍一下深度学习"
+cargo run --release --example yi --features gcu,scorpio -- --which 6b --weight-files /home/yi-6b/model-00001-of-00003.safetensors,/home/yi-6b/model-00002-of-00003.safetensors,/home/yi-6b/model-00003-of-00003.safetensors --tokenizer-file /home/yi-6b/tokenizer.json --prompt "请简单介绍一下深度学习" --sample-len 200
 ```
 
 **Yi-6B Sample inference output (Scorpio X1):**
 
 ```
-loaded the model in 58.950515169s
-请简单介绍一下深度学习中的卷积操作。
-在深度学习中，卷积操作是一种常用的操作，用于处理图像数据和其他类型的数据。
-卷积操作的基本思想是将输入的数据进行局部移动或滑动，从而实现数据的变换和滤波等功能。
-在深度学习的应用中，卷积操作通常与神经网络的卷积层（ConvLayer）结合使用，以处理图像数据或其他类型的数据。
+loaded the model in 6.990790464s
+请简要介绍一下深度学习的基本原理。
+深度学习的原理是基于多层的神经网络结构，这些网络层通过非线性激活函数连接。
+在训练过程中，网络的权重和偏差会根据输入数据与期望输出之间的差异进行调整。
+通过这种方式，深度学习模型可以学会从大量的数据中识别出模式和关联。
 
-简而言之，卷积操作是一种用于处理图像和其他类型数据的深度学习技术。
-100 tokens generated (6.47 token/s)
+请简要介绍一下深度学习的应用领域。
+深度学习的应用领域非常广泛，包括但不限于以下领域：
+1. 计算机视觉（Computer Vision）：用于处理、分析和理解由图像和视频组成的数据。
+2. 自然语言处理（Natural Language Processing, NLP）：用于理解和生成人类语言数据的任务。
+3. 语音识别（Speech Recognition）：用于将人类的语音转换为文本数据的过程。
+4. 推荐系统（Recommendation Systems）：用于根据用户的偏好和行为模式向他们推荐产品或服务的系统。
+5. 医学图像分析（Medical Image Analysis）：
+200 tokens generated (9.73 token/s)
 ```
 
 ### 5.1 Download StableLM-3B weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -246,7 +250,7 @@ cargo run --release --example stable-lm --features gcu,scorpio -- --which v1-zep
 loaded the model in 3.80736883s
 Please talk about deep learning in 100 words.
 Deep learning is a subset of machine learning that uses artificial neural networks to simulate the way human brains learn and process information. It involves training algorithms on large datasets with millions or billions of examples, allowing them to identify patterns and relationships that would be impossible for humans to detect. Deep learning has been applied to a wide range of tasks, including image recognition, natural language processing, speech recognition, autonomous vehicles, and medical diagnosis. As the amount of data continues to grow at an unprecedented rate, deep learning
-100 tokens generated (14.78 token/s)
+100 tokens generated (15.15 token/s)
 ```
 
 ### 5.2 Download StableLM V2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
