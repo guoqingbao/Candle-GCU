@@ -139,18 +139,17 @@ Replace **/home/llama2_weights/** with your weight folder and run the following 
 
 ``` shell
 cd candle-gcu
-cargo run --release --example llama --features gcu,scorpio -- --local-weights /home/llama2_weights/ --prompt "Please talk about deep learning in 100 words."
+cargo run --release --example llama --features gcu,scorpio -- --local-weights /home/llama2_weights/ --prompt "Instruct: Please talk about deep learning in 100 words. Output: "
 ```
 
-**LLaMa2-7B Sample inference output (Scorpio X1):**
+**LLaMa2-7B Sample inference output (Scorpio X1, BF16):**
 ```
 loading the model weights from meta-llama/Llama-2-7b-hf
 building the model
 starting the inference loop
-Please talk about deep learning in 100 words.
-Deep learning is a subset of machine learning that involves the use of artificial neural networks to model and solve complex problems. It is particularly useful for tasks that require the processing and analysis of large amounts of data, such as image and speech recognition, natural language processing, and autonomous driving. Deep learning algorithms are capable of learning and improving on their own by automatically adjusting their internal parameters during training, allowing them to achieve state-of-the-art performance in a wide range of applications
+Instruct: Please talk about deep learning in 100 words. Output: Deep learning is a subset of machine learning that involves the use of artificial neural networks to model and solve complex problems. It has been instrumental in achieving state-of-the-art performance in various applications such as image and speech recognition, natural language processing, and autonomous driving. Deep learning algorithms are capable of learning and improving on their own by automatically adjusting their internal parameters during training, allowing them to adapt to new data and tasks.
 
-100 tokens generated (8.680734699696703 token/s)
+92 tokens generated (9.198211127300857 token/s)
 ```
 
 ### 2. Download Mistral weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -167,11 +166,11 @@ cd candle-gcu
 cargo run --release --example mistral --features gcu,scorpio -- --weight-files /home/mistral_7b/model-00001-of-00003.safetensors,/home/mistral_7b/model-00002-of-00003.safetensors,/home/mistral_7b/model-00003-of-00003.safetensors --tokenizer-file /home/mistral_7b/tokenizer.json --prompt "Please talk about deep learning in 100 words."
 ```
 
-**Mistral-7B Sample inference output (Scorpio X1):**
+**Mistral-7B Sample inference output (Scorpio X1, BF16):**
 ```
 loaded the model in 58.479424355s
-Please talk about deep learning in 100 words. Deep learning is a subset of machine learning that uses artificial neural networks with three or more layers to model high-level abstractions in data. Deep learning has achieved state-of-the-art results in various applications, including image and speech recognition, natural language processing, and autonomous driving.
-61 tokens generated (8.71 token/s)
+Please talk about deep learning in 100 words. Deep learning is a subset of machine learning that uses artificial neural networks with three or more layers to learn and model complex relationships between data. Deep learning has achieved state-of-the-art results in various applications such as image recognition, speech recognition, natural language processing, and autonomous driving.
+60 tokens generated (9.49 token/s)
 ```
 
 ### 3. Download Phi-2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -185,17 +184,17 @@ Replace **/home/phi2/** with your weight folder and run the following command on
 
 ``` shell
 cd candle-gcu
-cargo run --release --example phi --features gcu,scorpio -- --model 2 --weight-file /home/phi2/model-00001-of-00002.safetensors,/home/phi2/model-00002-of-00002.safetensors --tokenizer /home/phi2/tokenizer.json --config /home/phi2/config.json --prompt "Instruct: Please talk about deep learning in 100 words. Output: "
+cargo run --release --example phi --features gcu,scorpio -- --model 2 --weight-file /home/phi2/model-00001-of-00002.safetensors,/home/phi2/model-00002-of-00002.safetensors --tokenizer /home/phi2/tokenizer.json --config /home/phi2/config.json --prompt "Instruct: Please talk about deep learning in 100 words. Output: " --sample-len 100
 ```
 
-**Phi-2 Sample inference output (Scorpio X1):**
+**Phi-2 Sample inference output (Scorpio X1, BF16):**
 ```
-loaded the model in 2.73142246s
+loaded the model in 3.027007815s
 starting the inference loop
 Instruct: Please talk about deep learning in 100 words. Output: 
-Deep learning is a subset of machine learning that utilizes artificial neural networks to model and understand complex patterns from data. Deep learning algorithms learn from large datasets by identifying trends and making predictions based on those trends. This allows deep learning models to recognize objects, classify data, and make decisions with high accuracy. Deep learning has been applied to various fields such as computer vision, natural language processing, and autonomous vehicles, where it has shown remarkable success in tasks like image recognition, speech recognition, and self-driving cars.
+Deep learning is a subset of machine learning that involves artificial neural networks with multiple layers that are designed to recognize patterns and make decisions. It has become increasingly popular in recent years due to its ability to analyze large datasets and identify complex relationships between variables. Deep learning algorithms are able to detect subtle features from data that may not be obvious to the human eye, allowing them to make more accurate predictions and decisions. Deep learning is used in a variety of applications, from healthcare to finance to autonomous vehicles.
 
-104 tokens generated (10.97 token/s)
+100 tokens generated (10.84 token/s)
 ```
 
 ### 4. Download Yi-6B weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -212,23 +211,17 @@ cd candle-gcu
 cargo run --release --example yi --features gcu,scorpio -- --which 6b --weight-files /home/yi-6b/model-00001-of-00003.safetensors,/home/yi-6b/model-00002-of-00003.safetensors,/home/yi-6b/model-00003-of-00003.safetensors --tokenizer-file /home/yi-6b/tokenizer.json --prompt "请简单介绍一下深度学习" --sample-len 200
 ```
 
-**Yi-6B Sample inference output (Scorpio X1):**
+**Yi-6B Sample inference output (Scorpio X1, BF16):**
 
 ```
-loaded the model in 6.990790464s
-请简要介绍一下深度学习的基本原理。
-深度学习的原理是基于多层的神经网络结构，这些网络层通过非线性激活函数连接。
-在训练过程中，网络的权重和偏差会根据输入数据与期望输出之间的差异进行调整。
-通过这种方式，深度学习模型可以学会从大量的数据中识别出模式和关联。
-
-请简要介绍一下深度学习的应用领域。
-深度学习的应用领域非常广泛，包括但不限于以下领域：
-1. 计算机视觉（Computer Vision）：用于处理、分析和理解由图像和视频组成的数据。
-2. 自然语言处理（Natural Language Processing, NLP）：用于理解和生成人类语言数据的任务。
-3. 语音识别（Speech Recognition）：用于将人类的语音转换为文本数据的过程。
-4. 推荐系统（Recommendation Systems）：用于根据用户的偏好和行为模式向他们推荐产品或服务的系统。
-5. 医学图像分析（Medical Image Analysis）：
-200 tokens generated (9.73 token/s)
+loaded the model in 6.91547928s
+请简要介绍一下深度学习的基本原理。深度学习的核心思想是分层处理数据，通过多层的非线性变换从原始数据中提取特征，从而实现数据的降维和特征的增强。
+在深度学习的框架中，通常包含以下几个主要组成部分：
+1. 输入层（Input Layer）：这是深度学习模型的第一个层，它接收并处理来自外部源的数据或信息。
+2. 隐藏层（Hidden Layer）：这些是深度学习模型中的中间层，它们的主要功能是通过一系列的数学运算和变换来从输入层的原始数据中提取出有用的特征，从而为后续的输出层提供更加丰富和有用的信息。
+3. 输出层（Output Layer）：这是深度学习模型的最后一个层，它接收并处理来自隐藏层的特征信息和数据，并通过一系列的数学运算和变换来对这些特征信息和数据进行进一步的加工和处理，从而为最终的输出结果提供更加丰富和有用的信息。
+4. 
+200 tokens generated (9.72 token/s)
 ```
 
 ### 5.1 Download StableLM-3B weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -247,10 +240,10 @@ cargo run --release --example stable-lm --features gcu,scorpio -- --which v1-zep
 
 **StableLM-v1 Sample inference output (Scorpio X1, BF16):**
 ```
-loaded the model in 3.80736883s
+loaded the model in 3.002149621s
 Please talk about deep learning in 100 words.
 Deep learning is a subset of machine learning that uses artificial neural networks to simulate the way human brains learn and process information. It involves training algorithms on large datasets with millions or billions of examples, allowing them to identify patterns and relationships that would be impossible for humans to detect. Deep learning has been applied to a wide range of tasks, including image recognition, natural language processing, speech recognition, autonomous vehicles, and medical diagnosis. As the amount of data continues to grow at an unprecedented rate, deep learning
-100 tokens generated (15.15 token/s)
+100 tokens generated (16.49 token/s)
 ```
 
 ### 5.2 Download StableLM V2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -344,12 +337,12 @@ Replace **/home/qwen-1.8b/** with your weight folder and run the following comma
 
 ``` shell
 cd candle-gcu
-cargo run --release --example qwen --features gcu,scorpio -- --model 1.8b --weight-files /home/qwen-1.8b/model.safetensors --tokenizer-file /home/qwen-1.8b/tokenizer.json --prompt "请使用不少于五百字来介绍一下深度学习。" --sample-len 1000
+cargo run --release --example qwen --features gcu,scorpio -- --model 1.8b --weight-files /home/qwen-1.8b/model.safetensors --tokenizer-file /home/qwen-1.8b/tokenizer.json --prompt "请使用五百字来介绍一下深度学习。" --sample-len 1000
 ```
 
 **QWen Sample inference output (Scorpio X1, BF16):**
 ```
-loaded the model in 4.502331669s
+loaded the model in 1.644448254s
 请使用五百字来介绍一下深度学习。 深度学习是一种人工智能技术，它模仿人脑神经网络的结构和功能，通过多层非线性变换和大量数据的学习，实现对复杂问题的自动识别、分类、预测和生成等任务。它的核心思想是构建多层次的神经网络模型，每一层都包含多个隐藏单元，这些隐藏单元之间的连接权重可以随着训练过程进行调整，以适应不同的输入特征和输出目标。
 
 深度学习的基本流程包括数据预处理、模型选择、模型训练和模型评估四个步骤。首先，需要对原始数据进行清洗和转换，以便于后续的神经网络模型训练。然后，根据任务需求选择合适的深度学习模型，如卷积神经网络（CNN）、循环神经网络（RNN）或长短时记忆网络（LSTM）。在模型选择阶段，通常会考虑模型的复杂度、训练速度、泛化能力等因素，并结合实际应用场景进行权衡。
@@ -361,7 +354,7 @@ loaded the model in 4.502331669s
 深度学习在图像识别、语音识别、自然语言处理、推荐系统等领域有着广泛的应用。例如，在图像识别中，深度学习可以实现对图像特征的自动提取和分类，如卷积神经网络（CNN）可以有效地检测图像中的物体、人脸等；在语音识别中，深度学习可以实现对语音信号的高精度识别，如循环神经网络（RNN）可以捕捉语音信号的时间序列信息；在自然语言处理中，深度学习可以实现对文本数据的自动分类和生成，如长短时记忆网络（LSTM）可以有效地处理长篇文本中的语义关系。
 
 总的来说，深度学习是一种强大的人工智能技术，它通过构建多层次的神经网络模型，实现了对复杂问题的自动识别、分类、预测和生成等任务。随着计算能力的提升和数据量的增加，深度学习在各个领域的应用将越来越广泛，为人类社会的发展带来更多的机遇和挑战。
-631 tokens generated (14.91 token/s)
+631 tokens generated (15.05 token/s)
 ```
 
 ### 8. Download Gemma weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -377,16 +370,51 @@ Replace **/home/gemma-2b/** with your weight folder and run the following comman
 
 ``` shell
 cd candle-gcu
-cargo run --release --example gemma --features gcu,scorpio -- --weight-files /home/gemma-2b/model-00001-of-00002.safetensors,/home/gemma-2b/model-00002-of-00002.safetensors --tokenizer-file /home/gemma-2b/tokenizer.json --config-file /home/gemma-2b/config.json --prompt "Please talk about deep learning in 100 words." --sample-len 100
+cargo run --release --example gemma --features gcu,scorpio -- --weight-files /home/gemma-2b/model-00001-of-00002.safetensors,/home/gemma-2b/model-00002-of-00002.safetensors --tokenizer-file /home/gemma-2b/tokenizer.json --config-file /home/gemma-2b/config.json --prompt "Please talk about deep learning in 500 words." --sample-len 500
 ```
 
-**Gemma Sample inference output (Scorpio X1):**
+**Gemma Sample inference output (Scorpio X1, BF6):**
 ```
-loaded the model in 2.830523715s
-Please talk about deep learning in 100 words.
+loaded the model in 2.95542875s
+Please talk about deep learning in 500 words.
 
-Deep learning is a subfield of machine learning that allows computers to learn from data without explicit programming. It involves the creation of artificial neural networks (ANNs) that mimic the structure and function of the human brain. These ANNs are trained on vast datasets, enabling them to identify patterns, make predictions, and solve problems. Deep learning has revolutionized various industries, including healthcare, finance, and transportation, by automating tasks, improving decision-making, and uncovering hidden insights.(99
-100 tokens generated (19.30 token/s)
+**Deep Learning: A Revolutionary Technology**
+
+Deep learning is a subfield of machine learning that enables computers to learn from data without explicit programming. It is a powerful technique that has revolutionized various industries, including healthcare, finance, and transportation.
+
+**How it works:**
+
+Deep learning algorithms are inspired by the structure and function of the human brain. They consist of multiple layers of interconnected nodes or "neurons" that process and transmit information. Data is fed into the network, and as it passes through the layers, the neurons form complex patterns and relationships. These patterns are then used to make predictions or decisions.
+
+**Key technologies:**
+
+* **Convolutional Neural Networks (CNNs):** Used for image recognition, such as facial recognition and object detection.
+* **Recurrent Neural Networks (RNNs):** Used for language processing, such as machine translation and sentiment analysis.
+* **Long Short-Term Memory (LSTM):** A variant of RNN that can handle long sequences of data more effectively.
+
+**Benefits:**
+
+* **Automatic feature extraction:** Deep learning can automatically discover meaningful features in data, eliminating the need for manual feature engineering.
+* **Improved accuracy:** By learning from data, deep learning models can achieve higher accuracy than traditional machine learning methods.
+* **Robustness to noise and outliers:** Deep learning is less susceptible to noise and outliers in data, making it more robust.
+
+**Applications:**
+
+* **Healthcare:** Disease diagnosis, drug discovery, personalized medicine.
+* **Finance:** Fraud detection, risk assessment, portfolio optimization.
+* **Transportation:** Self-driving cars, traffic prediction, accident detection.
+* **Marketing:** Customer segmentation, personalized advertising, recommendation systems.
+
+**Challenges:**
+
+* **Data quality and bias:** Deep learning models can be biased if the training data is biased.
+* **Explainability:** It can be difficult to understand how deep learning models arrive at their decisions.
+* **Computational cost:** Training deep learning models can be computationally intensive.
+
+**Conclusion:**
+
+Deep learning is a transformative technology that has made significant advancements in various industries. Its ability to learn from data without explicit programming has opened up new possibilities for problem-solving. While challenges remain, the rapid progress of deep learning makes it an exciting field to watch for continued innovation and applications.**Word count: 498**
+500 tokens generated (19.25 token/s)
 ```
 
 **Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels that have been initially implemented, i.e., affine, binary, cast, matmul, fill, indexing, reduce, ternary and unary, in ubridge/kernels**
