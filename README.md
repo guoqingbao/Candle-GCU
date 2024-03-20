@@ -383,10 +383,12 @@ loaded the model in 1.550255704s
 请使用五百字来介绍一下深度学习。 深度学习是一种人工智能技术，它模仿人脑神经网络的结构和功能，通过多层非线性变换和大量数据的学习，实现对复杂问题的自动识别、分类、预测和生成等任务。它的核心思想是构建多层次的神经网络模型，每一层都包含多个隐藏单元，这些隐藏单元之间的连接权重可以随着训练过程进行调整，以适应不同的输入特征和输出目标。
 
 深度学习的基本流程包括数据预处理、模型选择
-Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 317.33 token/s (32 x 9.92 token/s)
-Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 474.50 token/s (64 x 7.41 token/s)
-Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 580.87 token/s (128 x 4.54 token/s)
-Batch size = 256: 25600 tokens generated (256 x 100 tokens), throughput: 644.39 token/s (256 x 2.52 token/s)
+Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 17.02 token/s (1 x 17.02 token/s)
+Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 366.72 token/s (32 x 11.46 token/s)
+Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 578.84 token/s (64 x 9.04 token/s)
+Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 669.11 token/s (96 x 6.97 token/s)
+Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 749.12 token/s (128 x 5.85 token/s)
+Batch size = 256: 25600 tokens generated (256 x 100 tokens), throughput: 842.63 token/s (256 x 3.29 token/s)
 ```
 
 ### 8. Download Gemma weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -402,55 +404,46 @@ Replace **/home/gemma-2b/** with your weight folder and run the following comman
 
 ``` shell
 cd candle-gcu
-cargo run --release --example gemma --features gcu,scorpio -- --weight-files /home/gemma-2b/model-00001-of-00002.safetensors,/home/gemma-2b/model-00002-of-00002.safetensors --tokenizer-file /home/gemma-2b/tokenizer.json --config-file /home/gemma-2b/config.json --prompt "Please talk about deep learning in 500 words." --sample-len 500
+cargo run --release --example gemma --features gcu,scorpio -- --weight-files /home/gemma-2b/model-00001-of-00002.safetensors,/home/gemma-2b/model-00002-of-00002.safetensors --tokenizer-file /home/gemma-2b/tokenizer.json --config-file /home/gemma-2b/config.json --prompt "Please talk about deep learning in 100 words." --sample-len 100
 ```
 
 **Gemma Sample inference output (Scorpio X1, BF6):**
 ```
-loaded the model in 2.95542875s
-Please talk about deep learning in 500 words.
+loaded the model in 3.016762052s
+Please talk about deep learning in 100 words.
 
-**Deep Learning: A Revolutionary Technology**
+Deep learning is a subfield of machine learning that allows computers to learn from data without explicit programming. It involves the creation of artificial neural networks (ANNs) that mimic the structure and function of the human brain. These ANNs are trained on vast datasets, enabling them to identify patterns, make predictions, and solve problems. Deep learning has revolutionized various industries, including healthcare, finance, and transportation, by automating tasks, improving decision-making, and uncovering hidden insights.
 
-Deep learning is a subfield of machine learning that enables computers to learn from data without explicit programming. It is a powerful technique that has revolutionized various industries, including healthcare, finance, and transportation.
+Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 22.73 token/s (1 x 22.73 token/s)
+Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 483.47 token/s (32 x 15.11 token/s)
+Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 741.60 token/s (64 x 11.59 token/s)
+Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 771.54 token/s (96 x 8.04 token/s)
+Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 869.73 token/s (128 x 6.79 token/s)
+```
 
-**How it works:**
+### 9. Download ChatGLM3 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
 
-Deep learning algorithms are inspired by the structure and function of the human brain. They consist of multiple layers of interconnected nodes or "neurons" that process and transmit information. Data is fed into the network, and as it passes through the layers, the neurons form complex patterns and relationships. These patterns are then used to make predictions or decisions.
+Huggingface weights: https://huggingface.co/THUDM/chatglm3-6b
 
-**Key technologies:**
+model-00001-of-00007.safetensors  model-00002-of-00007.safetensors  model-00003-of-00007.safetensors
+model-00004-of-00007.safetensors  model-00005-of-00007.safetensors  model-00006-of-00007.safetensors
+model-00007-of-00007.safetensors
+tokenizer.json        
+config.json    
 
-* **Convolutional Neural Networks (CNNs):** Used for image recognition, such as facial recognition and object detection.
-* **Recurrent Neural Networks (RNNs):** Used for language processing, such as machine translation and sentiment analysis.
-* **Long Short-Term Memory (LSTM):** A variant of RNN that can handle long sequences of data more effectively.
+Replace **/home/chatglm3-6b/** with your weight folder and run the following command on Scorpio:
 
-**Benefits:**
+``` shell
+cd candle-gcu
+cargo run --release --example chatglm --features gcu,scorpio -- --weight-file /home/chatglm3-6b/model-00001-of-00007.safetensor,/home/chatglm3-6b/model-00002-of-00007.safetensor,/home/chatglm3-6b/model-00003-of-00007.safetensor,/home/chatglm3-6b/model-00004-of-00007.safetensor,/home/chatglm3-6b/model-00005-of-00007.safetensor,/home/chatglm3-6b/model-00006-of-00007.safetensor,/home/chatglm3-6b/model-00007-of-00007.safetensor --tokenizer /home/chatglm3-6b/chatglm-tokenizer.json --prompt "请使用一百字介绍深度学习" --sample-len 100
+```
 
-* **Automatic feature extraction:** Deep learning can automatically discover meaningful features in data, eliminating the need for manual feature engineering.
-* **Improved accuracy:** By learning from data, deep learning models can achieve higher accuracy than traditional machine learning methods.
-* **Robustness to noise and outliers:** Deep learning is less susceptible to noise and outliers in data, making it more robust.
-
-**Applications:**
-
-* **Healthcare:** Disease diagnosis, drug discovery, personalized medicine.
-* **Finance:** Fraud detection, risk assessment, portfolio optimization.
-* **Transportation:** Self-driving cars, traffic prediction, accident detection.
-* **Marketing:** Customer segmentation, personalized advertising, recommendation systems.
-
-**Challenges:**
-
-* **Data quality and bias:** Deep learning models can be biased if the training data is biased.
-* **Explainability:** It can be difficult to understand how deep learning models arrive at their decisions.
-* **Computational cost:** Training deep learning models can be computationally intensive.
-
-**Conclusion:**
-
-Deep learning is a transformative technology that has made significant advancements in various industries. Its ability to learn from data without explicit programming has opened up new possibilities for problem-solving. While challenges remain, the rapid progress of deep learning makes it an exciting field to watch for continued innovation and applications.**Word count: 498**
-Batch size = 1: 500 tokens generated (1 x 500 tokens), throughput: 21.36 token/s (1 x 21.36 token/s)
-Batch size = 32: 16000 tokens generated (32 x 500 tokens), throughput: 407.77 token/s (32 x 12.74 token/s)
-Batch size = 64: 32000 tokens generated (64 x 500 tokens), throughput: 573.48 token/s (64 x 8.96 token/s)
-Batch size = 96: 48000 tokens generated (96 x 500 tokens), throughput: 584.74 token/s (96 x 6.09 token/s)
-Batch size = 128: 64000 tokens generated (128 x 500 tokens), throughput: 617.20 token/s (128 x 4.82 token/s)
+**ChatGLM Sample inference output (Scorpio X1, BF6):**
+```
+loaded the model in 37.834555121s
+starting the inference loop
+请使用一百字介绍深度学习技术,包括其优点和缺点。深度学习技术是一种机器学习方法,通过模拟人脑神经网络来识别模式并进行预测。它的优点是可以处理大量复杂数据,并且能够自动提取特征,无需手动设计特征。此外,深度学习还可以进行端到端的训练,使得模型可以适应多种不同的任务。然而,深度学习也存在一些缺点,比如需要大量的计算资源和数据集,并且容易出现过拟合的情况。
+92 tokens generated (9.09 token/s)
 ```
 
 **Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels that have been initially implemented, i.e., affine, binary, cast, matmul, fill, indexing, reduce, ternary and unary, in ubridge/kernels**
