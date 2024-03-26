@@ -10,4 +10,7 @@
 	path = UHHI
 	url = git@git.enflame.cn:guoqing.bao/UHHI.git
 	ignore = dirty
-
+[submodule "candle-paged-attention"]
+	path = candle-paged-attention
+	url = git@git.enflame.cn:guoqing.bao/candle-paged-attention.git
+	ignore = dirty
