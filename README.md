@@ -40,9 +40,11 @@ __TODO: update status with the following template__
 | #7 | ChatGLM (v3) |✅|✅|
 | #8 | QWen (v2) |✅|✅|
 | #9 | Google Gemma (2b, 7b) |✅|✅|
-| #10 | RWKV (v5) |✅|TBD|
-| #11 | Falcon |✅|TBD|
-| #12 | Stable Diffusion (v1, v1.5, v2) |✅|TBD|
+| #10 | Blip-large (Multimodel) |✅|✅|
+| #11 | Moondream-2 (Multimodel) |✅|✅|
+| #12 | RWKV (v5) |✅|TBD|
+| #13 | Falcon |✅|TBD|
+| #14 | Stable Diffusion (v1, v1.5, v2) |✅|TBD|
 
 ## Demo Video
 
