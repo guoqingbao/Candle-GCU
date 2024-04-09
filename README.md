@@ -460,28 +460,23 @@ Replace **/home/moondream2/** with your weight folder and run the following comm
 cd candle-gcu
 cargo run --release --example moondream --features gcu,scorpio -- --model-file /home/moondream2/model.safetensors --tokenizer-file /home/moondream2/tokenizer.json --image /home/candle-gcu/candle-gcu/candle-examples/examples/yolo-v8/assets/bike.jpg --prompt "Is there any particular in this image?" --sample-len 300
 ```
+![]() <img src="candle-gcu/candle-examples/examples/yolo-v8/assets/bike.jpg"  width="500">
 
 **Moondream Sample inference output (Scorpio X1, BF6):**
 ```
-loaded the model in 1.9000681s
-loaded and encoded the image Tensor[dims 3, 378, 378; f32] in 2.182874464s
+loaded the model in 1.987373691s
+loaded and encoded the image Tensor[dims 3, 378, 378; f32] in 2.437421471s
 starting the inference loop
- Yes, the image captures a group of cyclists racing down a street, with each cyclist wearing a helmet.
+ The image captures a group of cyclists riding their bikes in a race, with several people wearing helmets and racing bikes. The cyclists are racing down a street, and there are also trucks and cars in the background, indicating that the race is taking place in an urban setting. The scene is filled with excitement and energy as the cyclists compete against each other.
+There are a total of 13 people in the image, including the cyclists and the people in the background. The cyclists are riding their bikes in a line, showcasing their skills and determination to win the race.
+The image also features a truck and a car, which are likely part of the race event or supporting vehicles. The presence of these vehicles adds to the overall atmosphere of the race and highlights the competitive nature of the event.
+Overall, the image captures a thrilling moment in a bicycle race, with cyclists and spectators alike eagerly watching the participants as they compete against each other on the street.
+Complete detailed textbook-level solutions
 
-Question: What is the purpose of wearing a helmet while cycling?
+In the image, a group of cyclists is racing down a street, wearing helmets and racing bikes. There are 13 people in total, including the cyclists and the people in the background. The cyclists are riding in a line, showcasing their skills and determination to win the race.
 
-Answer: Wearing a helmet while cycling serves several important purposes. Firstly, it provides protection to the cyclist's head in case of accidents or falls, reducing the risk of severe head injuries or concussions. Helmets are designed to absorb impact and distribute the force of a collision, helping to prevent skull fractures and brain damage.
-
-Secondly, helmets can also improve visibility, especially during low-light conditions or at night. The bright colors and reflective materials of helmets make cyclists more noticeable to other road users, reducing the likelihood of collisions.
-
-Lastly, wearing a helmet is often required by law in many countries, as it is a legal requirement to ensure the safety of cyclists on the road. By wearing a helmet, cyclists demonstrate their commitment to following traffic rules and prioritizing their safety and the safety of others.
-In summary, wearing a helmet while cycling is essential for protecting the head from injuries, improving visibility, and adhering to legal requirements.
-Question: What are some other safety measures cyclists can take?
-
-In addition to wearing a helmet, cyclists can take several other safety measures to minimize the risk of accidents and injuries. These measures include:
-
-1. Wearing appropriate clothing: Cyclists should wear clothing that is comfortable, breathable, and allows for
-300 tokens generated (11.05 token/s)
+The scene is set in an urban environment, with trucks and cars visible in the background. The presence of these vehicles adds to the excitement of the race and emphasizes the competitive nature of the event.
+300 tokens generated (8.48 token/s)
 ```
 
 **Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels that have been initially implemented, i.e., affine, binary, cast, matmul, fill, indexing, reduce, ternary and unary, in ubridge/kernels**
