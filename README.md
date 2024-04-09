@@ -40,8 +40,8 @@ __TODO: update status with the following template__
 | #7 | ChatGLM (v3) |✅|✅|
 | #8 | QWen (v2) |✅|✅|
 | #9 | Google Gemma (2b, 7b) |✅|✅|
-| #10 | Blip-large (Multimodel) |✅|✅|
-| #11 | Moondream-2 (Multimodel) |✅|✅|
+| #10 | Blip-large (Multimodal) |✅|✅|
+| #11 | Moondream-2 (Multimodal LLM) |✅|✅|
 | #12 | RWKV (v5) |✅|TBD|
 | #13 | Falcon |✅|TBD|
 | #14 | Stable Diffusion (v1, v1.5, v2) |✅|TBD|
@@ -446,6 +446,42 @@ loaded the model in 37.834555121s
 starting the inference loop
 请使用一百字介绍深度学习技术,包括其优点和缺点。深度学习技术是一种机器学习方法,通过模拟人脑神经网络来识别模式并进行预测。它的优点是可以处理大量复杂数据,并且能够自动提取特征,无需手动设计特征。此外,深度学习还可以进行端到端的训练,使得模型可以适应多种不同的任务。然而,深度学习也存在一些缺点,比如需要大量的计算资源和数据集,并且容易出现过拟合的情况。
 92 tokens generated (9.09 token/s)
+```
+
+### 10. (Talk to an image!) Download Moondream-2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+
+Huggingface weights: https://huggingface.co/vikhyatk/moondream2
+
+model.safetensors, tokenizer.json
+
+Replace **/home/moondream2/** with your weight folder and run the following command on Scorpio:
+
+``` shell
+cd candle-gcu
+cargo run --release --example moondream --features gcu,scorpio -- --model-file /home/moondream2/model.safetensors --tokenizer-file /home/moondream2/tokenizer.json --image /home/candle-gcu/candle-gcu/candle-examples/examples/yolo-v8/assets/bike.jpg --prompt "Is there any particular in this image?" --sample-len 300
+```
+
+**Moondream Sample inference output (Scorpio X1, BF6):**
+```
+loaded the model in 1.9000681s
+loaded and encoded the image Tensor[dims 3, 378, 378; f32] in 2.182874464s
+starting the inference loop
+ Yes, the image captures a group of cyclists racing down a street, with each cyclist wearing a helmet.
+
+Question: What is the purpose of wearing a helmet while cycling?
+
+Answer: Wearing a helmet while cycling serves several important purposes. Firstly, it provides protection to the cyclist's head in case of accidents or falls, reducing the risk of severe head injuries or concussions. Helmets are designed to absorb impact and distribute the force of a collision, helping to prevent skull fractures and brain damage.
+
+Secondly, helmets can also improve visibility, especially during low-light conditions or at night. The bright colors and reflective materials of helmets make cyclists more noticeable to other road users, reducing the likelihood of collisions.
+
+Lastly, wearing a helmet is often required by law in many countries, as it is a legal requirement to ensure the safety of cyclists on the road. By wearing a helmet, cyclists demonstrate their commitment to following traffic rules and prioritizing their safety and the safety of others.
+In summary, wearing a helmet while cycling is essential for protecting the head from injuries, improving visibility, and adhering to legal requirements.
+Question: What are some other safety measures cyclists can take?
+
+In addition to wearing a helmet, cyclists can take several other safety measures to minimize the risk of accidents and injuries. These measures include:
+
+1. Wearing appropriate clothing: Cyclists should wear clothing that is comfortable, breathable, and allows for
+300 tokens generated (11.05 token/s)
 ```
 
 **Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels that have been initially implemented, i.e., affine, binary, cast, matmul, fill, indexing, reduce, ternary and unary, in ubridge/kernels**
