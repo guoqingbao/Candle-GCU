@@ -460,7 +460,7 @@ Replace **/home/moondream2/** with your weight folder and run the following comm
 cd candle-gcu
 cargo run --release --example moondream --features gcu,scorpio -- --model-file /home/moondream2/model.safetensors --tokenizer-file /home/moondream2/tokenizer.json --image /home/candle-gcu/candle-gcu/candle-examples/examples/yolo-v8/assets/bike.jpg --prompt "Is there any particular in this image?" --sample-len 300
 ```
-![]() <img src="candle-gcu/candle-examples/examples/yolo-v8/assets/bike.jpg"  width="500">
+![]() <img src="resources/bike.jpg"  width="500">
 
 **Moondream Sample inference output (Scorpio X1, BF6):**
 ```
