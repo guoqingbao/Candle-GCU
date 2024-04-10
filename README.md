@@ -354,7 +354,7 @@ Replace **/home/qwen-1.8b/** with your weight folder and run the following comma
 
 ``` shell
 cd candle-gcu
-cargo run --release --example qwen --features gcu,scorpio -- --model 1.8b --weight-files /home/qwen-1.8b/model.safetensors --tokenizer-file /home/qwen-1.8b/tokenizer.json --prompt "请使用五百字来介绍一下深度学习。" --sample-len 1000
+cargo run --release --example qwen --features gcu,scorpio -- --model 1.8b --weight-files /home/qwen-1.8b/model.safetensors --tokenizer-file /home/qwen-1.8b/tokenizer.json --config /home/qwen-1.8b/config.json --prompt "请使用五百字来介绍一下深度学习。" --sample-len 1000
 ```
 
 **QWen Sample inference output (Scorpio X1, BF16，batchsize=1):**
@@ -476,7 +476,7 @@ Complete detailed textbook-level solutions
 In the image, a group of cyclists is racing down a street, wearing helmets and racing bikes. There are 13 people in total, including the cyclists and the people in the background. The cyclists are riding in a line, showcasing their skills and determination to win the race.
 
 The scene is set in an urban environment, with trucks and cars visible in the background. The presence of these vehicles adds to the excitement of the race and emphasizes the competitive nature of the event.
-300 tokens generated (8.48 token/s)
+300 tokens generated (9.23 token/s)
 ```
 
 **Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels that have been initially implemented, i.e., affine, binary, cast, matmul, fill, indexing, reduce, ternary and unary, in ubridge/kernels**
