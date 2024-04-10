@@ -55,6 +55,8 @@ __TODO: update status with the following template__
 
 <img src="./resources/Candle-GCU-QWen.gif" width="75%" height="75%" >
 
+<img src="./resources/Candle-GCU-Moondream2.gif" width="75%" height="75%" >
+
 ## Installation of dependencies 
 To bootstrap this project, you should run follow cmd first to fetch all the submodules from its source repos:
 
