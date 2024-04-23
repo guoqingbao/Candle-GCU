@@ -475,7 +475,7 @@ Overall, the image shows a sidewalk with a crack and a yellow line, emphasizing 
 Complete detailed textbook-level solutions
 The image shows a close-up of a sidewalk with a crack in it, surrounded by a yellow line. The crack is located near the center of the image, and the yellow line extends from the top left corner to the bottom right corner. The sidewalk appears to be made of concrete and has a few holes in it, suggesting that it may have been damaged or worn over time. The presence of the yellow line indicates that the sidewalk is meant for pedestrian use and is intended to prevent people from walking too close to the edge, which could potentially lead to accidents or injuries.
 The crack in the sidewalk is a common issue in urban areas, as it can be caused by various factors such as weathering, heavy foot traffic,
-300 tokens generated (12.25 token/s)
+300 tokens generated (15.70 token/s)
 ```
 
 **Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels that have been initially implemented, i.e., affine, binary, cast, matmul, fill, indexing, reduce, ternary and unary, in ubridge/kernels**
