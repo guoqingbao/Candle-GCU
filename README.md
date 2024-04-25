@@ -34,17 +34,18 @@ __TODO: update status with the following template__
 | #1 | LLAMA/LLAMA2 |✅|✅|
 | #2 | Mistral (v0.1, v0.2) |✅|✅|
 | #3 | Phi (v1, v1.5, v2) |✅|✅|
-| #4 | Yi |✅|✅|
-| #5 | StableLM (v1, v1-zephyr, v2, v2-zephyr) |✅|✅|
-| #6 | BigCode/StarCode |✅|✅|
-| #7 | ChatGLM (v3) |✅|✅|
-| #8 | QWen (v2) |✅|✅|
-| #9 | Google Gemma (2b, 7b) |✅|✅|
-| #10 | Blip-large (Multimodal) |✅|✅|
-| #11 | Moondream-2 (Multimodal LLM) |✅|✅|
-| #12 | RWKV (v5) |✅|TBD|
-| #13 | Falcon |✅|TBD|
-| #14 | Stable Diffusion (v1, v1.5, v2) |✅|TBD|
+| #4 | Phi-3 （4.8B, 7B） |✅|✅|
+| #5 | Yi |✅|✅|
+| #6 | StableLM (v1, v1-zephyr, v2, v2-zephyr) |✅|✅|
+| #7 | BigCode/StarCode |✅|✅|
+| #8 | ChatGLM (v3) |✅|✅|
+| #9 | QWen (v2) |✅|✅|
+| #10 | Google Gemma (2b, 7b) |✅|✅|
+| #11 | Blip-large (Multimodal) |✅|✅|
+| #12 | Moondream-2 (Multimodal LLM) |✅|✅|
+| #13 | RWKV (v5) |✅|TBD|
+| #14 | Falcon |✅|TBD|
+| #15 | Stable Diffusion (v1, v1.5, v2) |✅|TBD|
 
 ## Demo Video
 
@@ -143,7 +144,7 @@ Replace **/home/llama2_weights/** with your weight folder and run the following 
 
 ``` shell
 cd candle-gcu
-cargo run --release --example llama --features gcu,scorpio -- --local-weights /home/llama2_weights/ --prompt "Instruct: Please talk about deep learning in 100 words. Output: "
+cargo run --release --example llama --features gcu,scorpio,async -- --local-weights /home/llama2_weights/ --prompt "Instruct: Please talk about deep learning in 100 words. Output: "
 ```
 
 **LLaMa2-7B Sample inference output (Scorpio X1, BF16):**
@@ -152,11 +153,11 @@ loading the model weights from meta-llama/Llama-2-7b-hf
 building the model
 starting the inference loop
 Instruct: Please talk about deep learning in 100 words. Output: Deep learning is a subset of machine learning that involves the use of artificial neural networks to model and solve complex problems. It has been instrumental in achieving state-of-the-art performance in various applications such as image and speech recognition, natural language processing, and autonomous driving. Deep learning algorithms are capable of learning and improving on their own by automatically adjusting their internal parameters during training, allowing them to adapt to new data and tasks.
-Batch size = 1: 92 tokens generated (1 x 92 tokens), throughput: 12.92 token/s (1 x 12.92 token/s)
-Batch size = 32: 2944 tokens generated (32 x 92 tokens), throughput: 162.59 token/s (32 x 5.08 token/s)
-Batch size = 64: 5888 tokens generated (64 x 92 tokens), throughput: 206.82 token/s (64 x 3.21 token/s)
-Batch size = 96: 8832 tokens generated (96 x 92 tokens), throughput: 195.80 token/s (96 x 2.04 token/s)
-Batch size = 128: 11776 tokens generated (128 x 92 tokens), throughput: 210.25 token/s (128 x 1.64 token/s)
+Batch size = 1: 92 tokens generated (1 x 92 tokens), throughput: 13.08 token/s (1 x 13.08 token/s)
+Batch size = 32: 2944 tokens generated (32 x 92 tokens), throughput: 166.61 token/s (32 x 5.21 token/s)
+Batch size = 64: 5888 tokens generated (64 x 92 tokens), throughput: 219.71 token/s (64 x 3.42 token/s)
+Batch size = 96: 8832 tokens generated (96 x 92 tokens), throughput: 207.75 token/s (96 x 2.16 token/s)
+Batch size = 128: 11776 tokens generated (128 x 92 tokens), throughput: 217.51 token/s (128 x 1.70 token/s)
 ```
 
 ### 2. Download Mistral weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -170,18 +171,18 @@ Replace **/home/mistral_7b/** with your weight folder and run the following comm
 
 ``` shell
 cd candle-gcu
-cargo run --release --example mistral --features gcu,scorpio -- --weight-files /home/mistral_7b/model-00001-of-00003.safetensors,/home/mistral_7b/model-00002-of-00003.safetensors,/home/mistral_7b/model-00003-of-00003.safetensors --tokenizer-file /home/mistral_7b/tokenizer.json --prompt "Please talk about deep learning in 100 words."
+cargo run --release --example mistral --features gcu,scorpio,async -- --weight-files /home/mistral_7b/model-00001-of-00003.safetensors,/home/mistral_7b/model-00002-of-00003.safetensors,/home/mistral_7b/model-00003-of-00003.safetensors --tokenizer-file /home/mistral_7b/tokenizer.json --prompt "Please talk about deep learning in 100 words."
 ```
 
 **Mistral-7B Sample inference output (Scorpio X1, BF16):**
 ```
 loaded the model in 58.479424355s
 Please talk about deep learning in 100 words. Deep learning is a subset of machine learning that uses artificial neural networks with three or more layers to learn and model complex relationships between data. Deep learning has achieved state-of-the-art results in various applications such as image recognition, speech recognition, natural language processing, and autonomous driving.
-Batch size = 1: 60 tokens generated (1 x 60 tokens), throughput: 12.41 token/s (1 x 12.41 token/s)
-Batch size = 32: 1920 tokens generated (32 x 60 tokens), throughput: 177.00 token/s (32 x 5.53 token/s)
-Batch size = 64: 3840 tokens generated (64 x 60 tokens), throughput: 263.08 token/s (64 x 4.11 token/s)
-Batch size = 96: 5760 tokens generated (96 x 60 tokens), throughput: 242.40 token/s (96 x 2.53 token/s)
-Batch size = 128: 7680 tokens generated (128 x 60 tokens), throughput: 267.75 token/s (128 x 2.09 token/s)
+Batch size = 1: 60 tokens generated (1 x 60 tokens), throughput: 12.40 token/s (1 x 12.40 token/s)
+Batch size = 32: 1920 tokens generated (32 x 60 tokens), throughput: 186.48 token/s (32 x 5.83 token/s)
+Batch size = 64: 3840 tokens generated (64 x 60 tokens), throughput: 266.26 token/s (64 x 4.16 token/s)
+Batch size = 96: 5760 tokens generated (96 x 60 tokens), throughput: 245.91 token/s (96 x 2.56 token/s)
+Batch size = 128: 7680 tokens generated (128 x 60 tokens), throughput: 268.60 token/s (128 x 2.10 token/s)
 ```
 
 ### 3. Download Phi-2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -195,7 +196,7 @@ Replace **/home/phi2/** with your weight folder and run the following command on
 
 ``` shell
 cd candle-gcu
-cargo run --release --example phi --features gcu,scorpio -- --model 2 --weight-file /home/phi2/model-00001-of-00002.safetensors,/home/phi2/model-00002-of-00002.safetensors --tokenizer /home/phi2/tokenizer.json --config /home/phi2/config.json --prompt "Instruct: Please talk about deep learning in 100 words. Output: " --sample-len 100 --batch-size 96
+cargo run --release --example phi --features gcu,scorpio,async -- --model 2 --weight-file /home/phi2/model-00001-of-00002.safetensors,/home/phi2/model-00002-of-00002.safetensors --tokenizer /home/phi2/tokenizer.json --config /home/phi2/config.json --prompt "Instruct: Please talk about deep learning in 100 words. Output: " --sample-len 100 --batch-size 1
 ```
 
 **Phi-2 Sample inference output (Scorpio X1, BF16):**
@@ -205,14 +206,42 @@ starting the inference loop
 Instruct: Please talk about deep learning in 100 words. Output: 
 Deep learning is a subset of machine learning that involves artificial neural networks with multiple layers that are designed to recognize patterns and make decisions. It has become increasingly popular in recent years due to its ability to analyze large datasets and identify complex relationships between variables. Deep learning algorithms are able to detect subtle features from data that may not be obvious to the human eye, allowing them to make more accurate predictions and decisions. Deep learning is used in a variety of applications, from healthcare to finance to autonomous vehicles.
 
-Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 20.51 token/s (1 x 20.51 token/s)
-Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 240.87 token/s (32 x 7.53 token/s)
-Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 292.48 token/s (64 x 4.57 token/s)
-Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 309.01 token/s (96 x 3.22 token/s)
-Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 338.32 token/s (128 x 2.64 token/s)
+Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 20.80 token/s (1 x 20.80 token/s)
+Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 247.87 token/s (32 x 7.75 token/s)
+Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 305.92 token/s (64 x 4.78 token/s)
+Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 311.51 token/s (96 x 3.24 token/s)
+Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 330.74 token/s (128 x 2.58 token/s)
 ```
 
-### 4. Download Yi-6B weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+### 4. Download Phi-3 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+
+Huggingface weights: https://huggingface.co/microsoft/Phi-3-mini-4k-instruct
+
+config.json             model-00001-of-00002.safetensors  
+tokenizer.json          model-00002-of-00002.safetensors   
+
+Replace **/home/phi3/** with your weight folder and run the following command on Scorpio:
+
+``` shell
+cd candle-gcu
+cargo run --release --example phi --features gcu,scorpio,async -- --model 3 --weight-file /home/phi3/model-00001-of-00002.safetensors,/home/phi3/model-00002-of-00002.safetensors --tokenizer /home/phi3/tokenizer.json --config /home/phi3/config.json --prompt "Instruct: Please talk about deep learning in 300 words. Output: " --sample-len 300
+```
+
+**Phi-3 Sample inference output (Scorpio X1, BF16):**
+```
+loaded the model in 4.459936788s
+starting the inference loop
+Instruct: Please talk about deep learning in 300 words. Output: Deep learning, a subset of machine learning, has revolutionized the field of artificial intelligence (AI) by enabling computers to learn from and make decisions based on data. It involves training algorithms using large amounts of labeled data, allowing them to recognize patterns and make predictions or classifications with high accuracy.
+
+At its core, deep learning utilizes neural networks inspired by the human brain's structure and functioning. These artificial neural networks consist of interconnected layers of nodes, called neurons, which process input data through a series of mathematical operations. Each layer extracts increasingly complex features from the raw input, enabling the network to learn hierarchical representations that capture essential characteristics for specific tasks.
+
+One significant advantage of deep learning is its ability to handle large and unstructured datasets effectively. Traditional machine learning algorithms often struggle with high-dimensional data or require extensive feature engineering to extract meaningful patterns. In contrast, deep learning models can automatically learn relevant features from raw input without the need for manual intervention, making them highly adaptable to various domains such as image recognition, natural language processing, and speech analysis.
+
+Deep learning has achieved remarkable success in several areas of AI research. For instance, convolutional neural networks (CNNs) have revolutionized computer vision by enabling machines to recognize objects, faces, and scenes with high accuracy. Similarly, recurrent neural networks (RNNs), particularly long short-term memory (L
+300 tokens generated (1 x 300 tokens), throughput: 17.98 token/s (1 x 17.98 token/s)
+```
+
+### 5. Download Yi-6B weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
 
 Huggingface weights: https://huggingface.co/01-ai/Yi-6B-Chat/tree/main
 
@@ -223,7 +252,7 @@ Replace **/home/yi-6b/** with your weight folder and run the following command o
 
 ``` shell
 cd candle-gcu
-cargo run --release --example yi --features gcu,scorpio -- --which 6b --weight-files /home/yi-6b/model-00001-of-00003.safetensors,/home/yi-6b/model-00002-of-00003.safetensors,/home/yi-6b/model-00003-of-00003.safetensors --tokenizer-file /home/yi-6b/tokenizer.json --prompt "请使用一百字简单介绍一下深度学习" --sample-len 150 --batch-size 1
+cargo run --release --example yi --features gcu,scorpio,async -- --which 6b --weight-files /home/yi-6b/model-00001-of-00003.safetensors,/home/yi-6b/model-00002-of-00003.safetensors,/home/yi-6b/model-00003-of-00003.safetensors --tokenizer-file /home/yi-6b/tokenizer.json --prompt "请使用一百字简单介绍一下深度学习" --sample-len 150
 ```
 
 **Yi-6B Sample inference output (Scorpio X1, BF16):**
@@ -237,14 +266,14 @@ loaded the model in 6.403688985s
 简而言之，深度学习是一种基于神经网络的学习算法，它能够自动从数据中学习特征和模式，从而实现对数据的分类、预测等任务。
 
 在现代人工智能领域，深度学习是其中最为核心和关键的技术之一，它在很多不同的应用场景
-Batch size = 1: 150 tokens generated (1 x 150 tokens), throughput: 14.07 token/s (1 x 14.07 token/s)
-Batch size = 32: 4800 tokens generated (32 x 150 tokens), throughput: 193.52 token/s (32 x 6.05 token/s)
-Batch size = 64: 9600 tokens generated (64 x 150 tokens), throughput: 263.23 token/s (64 x 4.11 token/s)
-Batch size = 96: 14400 tokens generated (96 x 150 tokens), throughput: 265.86 token/s (96 x 2.77 token/s)
-Batch size = 128: 19200 tokens generated (128 x 150 tokens), throughput: 280.07 token/s (128 x 2.19 token/s)
+Batch size = 1: 150 tokens generated (1 x 150 tokens), throughput: 14.23 token/s (1 x 14.23 token/s)
+Batch size = 32: 4800 tokens generated (32 x 150 tokens), throughput: 208.64 token/s (32 x 6.52 token/s)
+Batch size = 64: 9600 tokens generated (64 x 150 tokens), throughput: 277.61 token/s (64 x 4.34 token/s)
+Batch size = 96: 14400 tokens generated (96 x 150 tokens), throughput: 272.21 token/s (96 x 2.84 token/s)
+Batch size = 128: 19200 tokens generated (128 x 150 tokens), throughput: 294.27 token/s (128 x 2.30 token/s)
 ```
 
-### 5.1 Download StableLM-3B weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+### 6.1 Download StableLM-3B weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
 
 Huggingface weights: https://huggingface.co/stabilityai/stablelm-zephyr-3b/tree/main
 
@@ -270,7 +299,7 @@ Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 271.47 tok
 Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 288.38 token/s (128 x 2.25 token/s)
 ```
 
-### 5.2 Download StableLM V2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+### 6.2 Download StableLM V2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
 
 Huggingface weights: https://huggingface.co/stabilityai/stablelm-2-zephyr-1_6b
 
@@ -281,7 +310,7 @@ Replace **/home/stablelm-v2/** with your weight folder and run the following com
 
 ``` shell
 cd candle-gcu
-cargo run --release --example stable-lm --features gcu,scorpio -- --which v2-zephyr --weight-files /home/stablelm-v2/model.safetensors --tokenizer-file /home/stablelm-v2/tokenizer-gpt4.json --prompt "请使用不少于五百字来介绍一下深度学习。" --sample-len 1000
+cargo run --release --example stable-lm --features gcu,scorpio,async -- --which v2-zephyr --weight-files /home/stablelm-v2/model.safetensors --tokenizer-file /home/stablelm-v2/tokenizer-gpt4.json --prompt "请使用不少于五百字来介绍一下深度学习。" --sample-len 1000
 ```
 
 **StableLM-v2 Sample inference output (Scorpio X1, BF16):**
@@ -307,7 +336,7 @@ Batch size = 32:14304 tokens generated (32 x 447 tokens), throughput: 187.65 tok
 Batch size = 64: 28608 tokens generated (64 x 447 tokens), throughput: 219.49 token/s (64 x 3.43 token/s)
 ```
 
-### 6. Download Bigcode/Starcode weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+### 7. Download Bigcode/Starcode weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
 
 Huggingface weights: https://huggingface.co/bigcode/starcoderbase
 
@@ -318,7 +347,7 @@ Replace **/home/bigcode/** with your weight folder and run the following command
 
 ``` shell
 cd candle-gcu
-cargo run --release --example bigcode --features gcu,scorpio -- --weight-file /home/bigcode/model.safetensors --tokenizer-file /home/bigcode/tokenizer.json --prompt "Write a Python program to train ResNet50 model on ImageNet."
+cargo run --release --example bigcode --features gcu,scorpio,async -- --weight-file /home/bigcode/model.safetensors --tokenizer-file /home/bigcode/tokenizer.json --prompt "Write a Python program to train ResNet50 model on ImageNet."
 ```
 
 **Bigcode Sample inference output (Scorpio X1):**
@@ -346,10 +375,10 @@ import matplotlib.pyplot as plt
 
 # +
 transform = transforms.Compose([transforms.ToTensor(), transforms.
-100 tokens generated (1 x 100 tokens), throughput: 40.36 token/s (1 x 40.36 token/s)
+100 tokens generated (1 x 100 tokens), throughput: 41.11 token/s (1 x 41.11 token/s)
 ```
 
-### 7. Download QWen weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+### 8. Download QWen weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
 
 Huggingface weights: https://huggingface.co/Qwen/Qwen-1_8B-Chat/tree/main
 
@@ -387,15 +416,14 @@ cargo run --release --example qwen --features gcu,scorpio -- --model 1.8b --weig
 
 **QWen Sample inference performance (Scorpio X1, BF16):**
 ```
-Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 31.52 token/s (1 x 31.52 token/s)
-Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 504.92 token/s (32 x 15.78 token/s)
-Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 701.50 token/s (64 x 10.96 token/s)
-Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 715.63 token/s (96 x 7.45 token/s)
-Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 749.12 token/s (128 x 5.85 token/s)
-Batch size = 256: 25600 tokens generated (256 x 100 tokens), throughput: 842.63 token/s (256 x 3.29 token/s)
+Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 31.74 token/s (1 x 31.74 token/s)
+Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 521.12 token/s (32 x 16.29 token/s)
+Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 715.87 token/s (64 x 11.19 token/s)
+Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 730.48 token/s (96 x 7.61 token/s)
+Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 840.35 token/s (128 x 6.57 token/s)
 ```
 
-### 8. Download Gemma weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+### 9. Download Gemma weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
 
 Huggingface weights: https://huggingface.co/google/gemma-2b-it
 
@@ -418,14 +446,14 @@ Please talk about deep learning in 100 words.
 
 Deep learning is a subfield of machine learning that allows computers to learn from data without explicit programming. It involves the creation of artificial neural networks (ANNs) that mimic the structure and function of the human brain. These ANNs are trained on vast datasets, enabling them to identify patterns, make predictions, and solve problems. Deep learning has revolutionized various industries, including healthcare, finance, and transportation, by automating tasks, improving decision-making, and uncovering hidden insights.
 
-Batch size = 1: 97 tokens generated (1 x 97 tokens), throughput: 31.26 token/s (1 x 31.26 token/s)
+Batch size = 1: 97 tokens generated (1 x 97 tokens), throughput: 31.18 token/s (1 x 31.18 token/s)
 Batch size = 32: 3104 tokens generated (32 x 97 tokens), throughput: 581.81 token/s (32 x 18.18 token/s)
-Batch size = 64: 6208 tokens generated (64 x 97 tokens), throughput: 808.36 token/s (64 x 12.63 token/s)
-Batch size = 96: 9312 tokens generated (96 x 97 tokens), throughput: 798.70 token/s (96 x 8.32 token/s)
-Batch size = 128: 12416 tokens generated (128 x 97 tokens), throughput: 886.65 token/s (128 x 6.93 token/s)
+Batch size = 64: 6208 tokens generated (64 x 97 tokens), throughput: 855.73 token/s (64 x 13.37 token/s)
+Batch size = 96: 9312 tokens generated (96 x 97 tokens), throughput: 836.45 token/s (96 x 8.71 token/s)
+Batch size = 128: 12416 tokens generated (128 x 97 tokens), throughput: 958.75 token/s (128 x 7.50 token/s)
 ```
 
-### 9. Download ChatGLM3 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+### 10. Download ChatGLM3 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
 
 Huggingface weights: https://huggingface.co/THUDM/chatglm3-6b
 
@@ -439,7 +467,7 @@ Replace **/home/chatglm3-6b/** with your weight folder and run the following com
 
 ``` shell
 cd candle-gcu
-cargo run --release --example chatglm --features gcu,scorpio -- --weight-file /home/chatglm3-6b/model-00001-of-00007.safetensor,/home/chatglm3-6b/model-00002-of-00007.safetensor,/home/chatglm3-6b/model-00003-of-00007.safetensor,/home/chatglm3-6b/model-00004-of-00007.safetensor,/home/chatglm3-6b/model-00005-of-00007.safetensor,/home/chatglm3-6b/model-00006-of-00007.safetensor,/home/chatglm3-6b/model-00007-of-00007.safetensor --tokenizer /home/chatglm3-6b/chatglm-tokenizer.json --prompt "请使用一百字介绍深度学习" --sample-len 100
+cargo run --release --example chatglm --features gcu,scorpio,async -- --weight-file /home/chatglm3-6b/model-00001-of-00007.safetensor,/home/chatglm3-6b/model-00002-of-00007.safetensor,/home/chatglm3-6b/model-00003-of-00007.safetensor,/home/chatglm3-6b/model-00004-of-00007.safetensor,/home/chatglm3-6b/model-00005-of-00007.safetensor,/home/chatglm3-6b/model-00006-of-00007.safetensor,/home/chatglm3-6b/model-00007-of-00007.safetensor --tokenizer /home/chatglm3-6b/chatglm-tokenizer.json --prompt "请使用一百字介绍深度学习" --sample-len 100
 ```
 
 **ChatGLM Sample inference output (Scorpio X1, BF6):**
@@ -450,7 +478,7 @@ starting the inference loop
 92 tokens generated (12.20 token/s)
 ```
 
-### 10. (Talk to an image!) Download Moondream-2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
+### 11. (Talk to an image!) Download Moondream-2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
 
 Huggingface weights: https://huggingface.co/vikhyatk/moondream2
 
@@ -460,22 +488,18 @@ Replace **/home/moondream2/** with your weight folder and run the following comm
 
 ``` shell
 cd candle-gcu
-cargo run --release --example moondream --features gcu,scorpio -- --model-file /home/moondream2/model.safetensors --tokenizer-file /home/moondream2/tokenizer.json --image /home/candle-gcu/candle-gcu/candle-examples/examples/yolo-v8/assets/bike.jpg --prompt "Is there any particular in this image?" --sample-len 300
+cargo run --release --example moondream --features gcu,scorpio,async -- --model-file /home/moondream2/model.safetensors --tokenizer-file /home/moondream2/tokenizer.json --image /home/candle-gcu/resources/road.png --prompt "Where is the problem in this road? and why." --sample-len 300
 ```
-![]() <img src="resources/bike.jpg"  width="500">
+![]() <img src="resources/road.png"  width="500">
 
 **Moondream Sample inference output (Scorpio X1, BF6):**
 ```
-loaded the model in 9.231756591s
-loaded and encoded the image Tensor[dims 3, 378, 378; f32] in 32.799601ms
+loaded the model in 2.122345717s
+loaded and encoded the image Tensor[dims 3, 378, 378; bf16, gcu:0] in 23.329414ms
 starting the inference loop
- The image features a close-up of a sidewalk with a crack in it, and it appears to be a part of a larger picture. The crack is surrounded by a yellow line, which is likely a cautionary measure to prevent people from walking too close to the edge of the sidewalk. The sidewalk is made of concrete and has a few holes in it, indicating that it may have been damaged or worn over time.
-Additionally, there is a yellow line on the ground, which is also a safety measure to prevent accidents or vehicles from veering off the sidewalk.
-Overall, the image shows a sidewalk with a crack and a yellow line, emphasizing the need for caution and safety in the area.
-Complete detailed textbook-level solutions
-The image shows a close-up of a sidewalk with a crack in it, surrounded by a yellow line. The crack is located near the center of the image, and the yellow line extends from the top left corner to the bottom right corner. The sidewalk appears to be made of concrete and has a few holes in it, suggesting that it may have been damaged or worn over time. The presence of the yellow line indicates that the sidewalk is meant for pedestrian use and is intended to prevent people from walking too close to the edge, which could potentially lead to accidents or injuries.
-The crack in the sidewalk is a common issue in urban areas, as it can be caused by various factors such as weathering, heavy foot traffic,
-300 tokens generated (12.25 token/s)
+ The problem in this road is a crack in the sidewalk, which is a part of a larger crack in the sidewalk. This crack is located in the middle of the sidewalk and is surrounded by yellow lines. The crack is a safety hazard for pedestrians, as it can cause tripping or falling accidents. Additionally, the crack may indicate underlying structural issues or poor maintenance of the sidewalk, which could lead to further deterioration and pose a risk to the safety of pedestrians. It is essential for the city to address this issue promptly to ensure the safety of its residents.
+generated in 4.958541815 seconds
+112 tokens generated (22.39 token/s)
 ```
 
 **Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels that have been initially implemented, i.e., affine, binary, cast, matmul, fill, indexing, reduce, ternary and unary, in ubridge/kernels**
