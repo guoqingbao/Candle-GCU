@@ -31,7 +31,7 @@ Currently, candle-gcu supports following models in candle-transformers. Notably,
 __TODO: update status with the following template__
 | LLM Model ID | LLM Model | Supporting GPU | Supporting Scorpio
 |--|--|--|--|
-| #1 | LLAMA/LLAMA2 |✅|✅|
+| #1 | LLAMA/LLAMA2/LLaMa3 |✅|✅|
 | #2 | Mistral (v0.1, v0.2) |✅|✅|
 | #3 | Phi (v1, v1.5, v2) |✅|✅|
 | #4 | Phi-3 （4.8B, 7B） |✅|✅|
@@ -61,12 +61,12 @@ __TODO: update status with the following template__
 ## Installation of dependencies 
 To bootstrap this project, you should run follow cmd first to fetch all the submodules from its source repos:
 
-Install GCU driver (2.6+), CAPS (0.9+)
+Install TopsPlatform (version 1.0+)
 
-Run CAPS installation: driver installation outside docker, and topscc & runtime installation inside docker.
+Run TopsPlatform installation: install driver outside docker, and topscc & runtime inside docker.
 
 ```shell
-sudo ./TopsPlatform_0.9.1_deb_amd64.run 
+sudo ./TopsPlatform_1.0.1_deb_amd64.run 
 export PATH=$PATH:/opt/tops/bin
 ```
 
@@ -94,7 +94,7 @@ default = ["cuda"] #gpu cuda
 
 default = ["cuda", "flash-attn"] #gpu cuda with flash attention (cutlass build)
 
-## $\textcolor{green}{\text{TODO}}$
+## $\textcolor{green}{\text{Micro-kernels}}$
 __Write the following unfinished GCU kernerls defined in Candle (written in TopsCC, refer to candle-kernels)__
 
 **Unary** ✅: $\textcolor{red}{\text{copy}}$, neg, recip, $\textcolor{red}{\text{exp}}$, log, $\textcolor{red}{\text{sin}}$, $\textcolor{red}{\text{cos}}$, abs, $\textcolor{red}{\text{sqr}}$, $\textcolor{red}{\text{sqrt}}$, gelu, relu, elu
@@ -139,6 +139,7 @@ $\textcolor{green}{\text{Note}}$: $\textcolor{red}{\text{micro-kernels in red fo
 
 config.json             model-00001-of-00002.safetensors   
 tokenizer.json          model-00002-of-00002.safetensors    
+**model.safetensors.index.json**
 
 Replace **/home/llama2_weights/** with your weight folder and run the following command on Scorpio:
 
