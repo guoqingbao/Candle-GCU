@@ -154,11 +154,11 @@ loading the model weights from meta-llama/Llama-2-7b-hf
 building the model
 starting the inference loop
 Instruct: Please talk about deep learning in 100 words. Output: Deep learning is a subset of machine learning that involves the use of artificial neural networks to model and solve complex problems. It has been instrumental in achieving state-of-the-art performance in various applications such as image and speech recognition, natural language processing, and autonomous driving. Deep learning algorithms are capable of learning and improving on their own by automatically adjusting their internal parameters during training, allowing them to adapt to new data and tasks.
-Batch size = 1: 92 tokens generated (1 x 92 tokens), throughput: 15.75 token/s (1 x 15.75 token/s)
-Batch size = 32: 2944 tokens generated (32 x 92 tokens), throughput: 256.68 token/s (32 x 8.02 token/s)
-Batch size = 64: 5888 tokens generated (64 x 92 tokens), throughput: 390.34 token/s (64 x 6.10 token/s)
-Batch size = 96: 8832 tokens generated (96 x 92 tokens), throughput: 415.11 token/s (96 x 4.32 token/s)
-Batch size = 128 (sync mode): 11776 tokens generated (128 x 92 tokens), throughput: 388.12 token/s (128 x 3.03 token/s)
+Batch size = 1: 92 tokens generated (1 x 92 tokens), throughput: 16.98 token/s (1 x 16.98 token/s)
+Batch size = 32: 2944 tokens generated (32 x 92 tokens), throughput: 273.94 token/s (32 x 8.56 token/s)
+Batch size = 64: 5888 tokens generated (64 x 92 tokens), throughput: 416.35 token/s (64 x 6.51 token/s)
+Batch size = 96: 8832 tokens generated (96 x 92 tokens), throughput: 430.80 token/s (96 x 4.49 token/s)
+Batch size = 128: 11776 tokens generated (128 x 92 tokens), throughput: 472.91 token/s (128 x 3.69 token/s)
 ```
 
 ### 2. Download Mistral weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -177,13 +177,13 @@ cargo run --release --example mistral --features gcu,scorpio,async -- --weight-f
 
 **Mistral-7B Sample inference output (Scorpio X2, BF16):**
 ```
-loaded the model in 58.479424355s
-Please talk about deep learning in 100 words. Deep learning is a subset of machine learning that uses artificial neural networks with three or more layers to learn and model complex relationships between data. Deep learning has achieved state-of-the-art results in various applications such as image recognition, speech recognition, natural language processing, and autonomous driving.
-Batch size = 1: 60 tokens generated (1 x 60 tokens), throughput: 15.19 token/s (1 x 15.19 token/s)
-Batch size = 32: 1920 tokens generated (32 x 60 tokens), throughput: 282.62 token/s (32 x 8.83 token/s)
-Batch size = 64: 3840 tokens generated (64 x 60 tokens), throughput: 409.73 token/s (64 x 6.40 token/s)
-Batch size = 96: 5760 tokens generated (96 x 60 tokens), throughput: 427.42 token/s (96 x 4.45 token/s)
-Batch size = 128: 7680 tokens generated (128 x 60 tokens), throughput: 467.50 token/s (128 x 3.65 token/s)
+loaded the model in 11.816571124s
+Please talk about deep learning in 100 words. Deep learning is a subset of machine learning that uses artificial neural networks with multiple layers to model high-level abstractions in data. It has revolutionized the field of AI by achieving state-of-the-art results in various applications such as image and speech recognition, natural language processing, and autonomous driving. Deep learning models can learn features directly from raw data without explicit programming, enabling them to adapt to new situations and improve performance over time. The success of deep learning is due to the
+Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 16.59 token/s (1 x 16.59 token/s)
+Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 305.38 token/s (32 x 9.54 token/s)
+Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 443.93 token/s (64 x 6.94 token/s)
+Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 444.10 token/s (96 x 4.63 token/s)
+Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 491.15 token/s (128 x 3.84 token/s)
 ```
 
 ### 3. Download Phi-2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -202,16 +202,15 @@ cargo run --release --example phi --features gcu,scorpio,async -- --model 2 --we
 
 **Phi-2 Sample inference output (Scorpio X2, BF16):**
 ```
-loaded the model in 3.027007815s
+loaded the model in 5.305805412s
 starting the inference loop
 Instruct: Please talk about deep learning in 100 words. Output: 
-Deep learning is a subset of machine learning that involves artificial neural networks with multiple layers that are designed to recognize patterns and make decisions. It has become increasingly popular in recent years due to its ability to analyze large datasets and identify complex relationships between variables. Deep learning algorithms are able to detect subtle features from data that may not be obvious to the human eye, allowing them to make more accurate predictions and decisions. Deep learning is used in a variety of applications, from healthcare to finance to autonomous vehicles.
-
-Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 21.55 token/s (1 x 21.55 token/s)
-Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 376.08 token/s (32 x 11.75 token/s)
-Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 552.98 token/s (64 x 8.64 token/s)
-Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 631.66 token/s (96 x 6.58 token/s)
-Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 686.71 token/s (128 x 5.36 token/s)
+Deep learning is a subset of machine learning that involves artificial neural networks with multiple layers that are designed to mimic the way the human brain works. Deep learning algorithms are able to learn patterns and trends in large datasets, allowing machines to recognize objects, classify data, and make decisions without being explicitly programmed. Deep learning has made many advances in recent years, enabling applications from medical diagnosis to self-driving cars. While deep learning provides many benefits, it also comes with challenges such as ethical considerations, data privacy
+Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 22.73 token/s (1 x 22.73 token/s)
+Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 397.32 token/s (32 x 12.42 token/s)
+Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 591.54 token/s (64 x 9.24 token/s)
+Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 657.49 token/s (96 x 6.85 token/s)
+Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 713.20 token/s (128 x 5.57 token/s)
 ```
 
 ### 4. Download Phi-3 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -230,16 +229,18 @@ cargo run --release --example phi --features gcu,scorpio,async -- --model 3 --we
 
 **Phi-3 Sample inference output (Scorpio X1, BF16):**
 ```
-loaded the model in 4.459936788s
+loaded the model in 6.305693744s
 starting the inference loop
-Instruct: Please talk about deep learning in 300 words. Output: Deep learning, a subset of machine learning, has revolutionized the field of artificial intelligence (AI) by enabling computers to learn from and make decisions based on data. It involves training algorithms using large amounts of labeled data, allowing them to recognize patterns and make predictions or classifications with high accuracy.
+Instruct: Please talk about deep learning in 300 words. Output: Deep learning, a subset of machine learning, has revolutionized the field of artificial intelligence (AI) by enabling computers to learn from and make decisions based on data. It involves training algorithms using large amounts of labeled data, allowing them to recognize patterns, extract meaningful insights, and make accurate predictions or classifications.
 
-At its core, deep learning utilizes neural networks inspired by the human brain's structure and functioning. These artificial neural networks consist of interconnected layers of nodes, called neurons, which process input data through a series of mathematical operations. Each layer extracts increasingly complex features from the raw input, enabling the network to learn hierarchical representations that capture essential characteristics for specific tasks.
+At its core, deep learning relies on neural networks—computational models inspired by the human brain's structure and functioning. These networks consist of interconnected layers of artificial neurons that process input data through multiple levels of abstraction, gradually refining their understanding of complex relationships within the data. The most common type of neural network used in deep learning is called a convolutional neural network (CNN), which excels at processing visual information and has been instrumental in advancements such as image recognition and object detection.
 
-One significant advantage of deep learning is its ability to handle large and unstructured datasets effectively. Traditional machine learning algorithms often struggle with high-dimensional data or require extensive feature engineering to extract meaningful patterns. In contrast, deep learning models can automatically learn relevant features from raw input without the need for manual intervention, making them highly adaptable to various domains such as image recognition, natural language processing, and speech analysis.
+One key advantage of deep learning over traditional machine learning techniques lies in its ability to automatically learn hierarchical representations from raw data, eliminating the need for manual feature engineering. This allows deep learning models to capture intricate patterns that may be difficult or impossible for humans to discern, leading to improved accuracy and efficiency across a wide range of applications.
 
-Deep learning has achieved remarkable success in several areas of AI research. For instance, convolutional neural networks (CNNs) have revolutionized computer vision by enabling machines to recognize objects, faces, and scenes with high accuracy. Similarly, recurrent neural networks (RNNs), particularly long short-term memory (L
-300 tokens generated (1 x 300 tokens), throughput: 17.98 token/s (1 x 17.98 token/s)
+
+
+Deep learning has been applied successfully in numerous domains, including speech recognition, natural language processing (NLP), computer vision, medical diagnosis, autonomous vehicles, finance, gaming, and many more. In the field of health
+300 tokens generated (1 x 300 tokens), throughput: 23.22 token/s (1 x 23.22 token/s)
 ```
 
 ### 5. Download Yi-6B weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -253,7 +254,7 @@ Replace **/home/yi-6b/** with your weight folder and run the following command o
 
 ``` shell
 cd candle-gcu
-cargo run --release --example yi --features gcu,scorpio,async -- --which 6b --weight-files /home/yi-6b/model-00001-of-00003.safetensors,/home/yi-6b/model-00002-of-00003.safetensors,/home/yi-6b/model-00003-of-00003.safetensors --tokenizer-file /home/yi-6b/tokenizer.json --prompt "请使用一百字简单介绍一下深度学习" --sample-len 150
+cargo run --release --example yi --features gcu,scorpio,async -- --which 6b --weight-files /home/yi-6b/model-00001-of-00003.safetensors,/home/yi-6b/model-00002-of-00003.safetensors,/home/yi-6b/model-00003-of-00003.safetensors --tokenizer-file /home/yi-6b/tokenizer.json --prompt "请使用一百字简单介绍一下深度学习" --sample-len 100
 ```
 
 **Yi-6B Sample inference output (Scorpio X2, BF16):**
@@ -261,20 +262,14 @@ cargo run --release --example yi --features gcu,scorpio,async -- --which 6b --we
 ```
 loaded the model in 10.107661037s
 请使用一百字简单介绍一下深度学习。深度学习是一种基于神经网络的学习算法，它能够自动从数据中学习特征和模式，从而实现对数据的分类、预测等任务。
-简而言之，深度学习就是一种通过训练神经网络来处理数据的技术。
-
-深度学习的应用领域非常广泛，包括计算机视觉、自然语言处理、音频信号处理等领域。
-
-随着技术的不断进步和发展，深度学习技术在未来的应用前景将会更加广阔和充满无限可能。
-
-总之，深度学习是一种强大的机器学习技术，它能够自动从数据中学习特征和模式，从而实现对数据的分类、预测等任务。随着技术的不断进步和发展，深度学习技术在未来的应用前景将会更加广阔和充满无限可能。
-
-参考
-Batch size = 1: 150 tokens generated (1 x 150 tokens), throughput: 16.80 token/s (1 x 16.80 token/s)
-Batch size = 32: 4800 tokens generated (32 x 150 tokens), throughput: 292.20 token/s (32 x 9.13 token/s)
-Batch size = 64: 9600 tokens generated (64 x 150 tokens), throughput: 404.59 token/s (64 x 6.32 token/s)
-Batch size = 96: 14400 tokens generated (96 x 150 tokens), throughput: 429.19 token/s (96 x 4.47 token/s)
-Batch size = 128: 19200 tokens generated (128 x 150 tokens), throughput: 464.68 token/s (128 x 3.63 token/s)
+深度学习的核心在于其多层的神经网络结构，这些层包括输入层、隐藏层以及输出层。
+在训练深度学习模型时，通常会使用大量的数据进行训练，以使得模型能够更好地学习数据的特征和模式。
+深度学习在许多领域都有应用，例如计算机视觉、自然语言处理、音频
+Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 18.54 token/s (1 x 18.54 token/s)
+Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 347.03 token/s (32 x 10.84 token/s)
+Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 491.83 token/s (64 x 7.68 token/s)
+Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 501.69 token/s (96 x 5.23 token/s)
+Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 554.85 token/s (128 x 4.33 token/s)
 ```
 
 ### 6 Download StableLM V2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -301,11 +296,11 @@ Deep Learning is a subset of machine learning that uses artificial neural networ
 In simple terms, deep learning involves training large neural networks with multiple layers to learn from vast amounts of data. These networks can then be used for tasks such as image recognition, speech recognition, natural language processing, and predictive analytics.
 
 Deep Learning has revolutionized the field of artificial intelligence by enabling machines to perform complex tasks that were previously thought to require
-Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 32.73 token/s (1 x 32.73 token/s)
-Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 608.10 token/s (32 x 19.00 token/s)
-Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 897.47 token/s (64 x 14.02 token/s)
-Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 1076.61 token/s (96 x 11.21 token/s)
-Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 1139.88 token/s (128 x 8.91 token/s)
+Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 36.69 token/s (1 x 36.69 token/s)
+Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 681.61 token/s (32 x 21.30 token/s)
+Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 1000.04 token/s (64 x 15.63 token/s)
+Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 1120.12 token/s (96 x 11.67 token/s)
+Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 1198.66 token/s (128 x 9.36 token/s)
 ```
 
 ### 7. Download Bigcode/Starcode weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -347,7 +342,7 @@ import matplotlib.pyplot as plt
 
 # +
 transform = transforms.Compose([transforms.ToTensor(), transforms.
-100 tokens generated (1 x 100 tokens), throughput: 41.11 token/s (1 x 41.11 token/s)
+100 tokens generated (1 x 100 tokens), throughput: 42.06 token/s (1 x 42.06 token/s)
 ```
 
 ### 8. Download QWen weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -361,28 +356,17 @@ Replace **/home/qwen-1.8b/** with your weight folder and run the following comma
 
 ``` shell
 cd candle-gcu
-cargo run --release --example qwen --features gcu,scorpio,async -- --model 1.8b --weight-files /home/qwen-1.8b/model.safetensors --tokenizer-file /home/qwen-1.8b/tokenizer.json --config /home/qwen-1.8b/config.json --prompt "请使用三百字来介绍一下深度学习。" --sample-len 1000
+cargo run --release --example qwen --features gcu,scorpio,async -- --model 1.8b --weight-files /home/qwen-1.8b/model.safetensors --tokenizer-file /home/qwen-1.8b/tokenizer.json --config /home/qwen-1.8b/config.json --prompt "请使用一百字来介绍一下深度学习。" --sample-len 100
 ```
 
-**QWen Sample inference output (Scorpio X2, BF16，batchsize=1, 32):**
+**QWen Sample inference output (Scorpio X2, BF16):**
 ```
-请使用三百字来介绍一下深度学习。 深度学习是一种机器学习技术，它通过模拟人脑神经网络的结构和功能，从大量数据中自动提取特征并进行模式识别、分类和预测等任务。它的核心思想是构建多层非线性变换模型，每一层都包含多个隐藏单元，这些隐藏单元可以接收上一层输出，并产生新的输出，从而实现对输入数据的复杂表示和抽象处理。深度学习通过大量的训练数据，不断调整网络参数，使得网络能够自动从数据中提取出有用的特征，从而达到较高的预测精度和泛化能力。在实际应用中，深度学习广泛应用于计算机视觉、自然语言处理、语音识别、推荐系统等领域，为人工智能的发展提供了强大的技术支持。
-151 tokens generated (1 x 151 tokens), throughput: 34.44 token/s (1 x 34.44 token/s)
-4832 tokens generated (32 x 151 tokens), throughput: 697.77 token/s (32 x 21.81 token/s)
-```
-
-``` shell
-cd candle-gcu
-cargo run --release --example qwen --features gcu,scorpio -- --model 1.8b --weight-files /home/qwen-1.8b/model.safetensors --tokenizer-file /home/qwen-1.8b/tokenizer.json --prompt "请使用五百字来介绍一下深度学习。" --sample-len 100 --batch-size 256
-```
-
-**QWen Sample inference performance (Scorpio X1, BF16):**
-```
-Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 31.74 token/s (1 x 31.74 token/s)
-Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 521.12 token/s (32 x 16.29 token/s)
-Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 715.87 token/s (64 x 11.19 token/s)
-Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 730.48 token/s (96 x 7.61 token/s)
-Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 840.35 token/s (128 x 6.57 token/s)
+请使用一百字来介绍一下深度学习。 深度学习是一种机器学习技术，它通过构建多层神经网络模型，模拟人脑的神经元结构和功能，从而实现对复杂数据的学习和处理。在深度学习中，输入数据被转化为一系列特征向量，然后通过多层非线性变换（如卷积、池化、全连接等）进行特征提取和分类，最后通过反向传播算法更新权重参数，以最小化预测误差。深度学习广泛应用于计算机视觉
+Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 37.86 token/s (1 x 37.86 token/s)
+Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 809.07 token/s (32 x 25.28 token/s)
+Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 1211.74 token/s (64 x 18.93 token/s)
+Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 1441.22 token/s (96 x 15.01 token/s)
+Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 1613.28 token/s (128 x 12.60 token/s)
 ```
 
 ### 9. Download Gemma weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -408,11 +392,11 @@ Please talk about deep learning in 100 words.
 
 Deep learning is a subfield of machine learning that allows computers to learn from data without explicit programming. It involves the creation of artificial neural networks (ANNs) that mimic the structure and function of the human brain. These ANNs are trained on vast datasets, enabling them to identify patterns, make predictions, and solve problems. Deep learning has revolutionized various industries, including healthcare, finance, and transportation, by automating tasks, improving decision-making, and uncovering hidden insights.
 
-Batch size = 1: 97 tokens generated (1 x 97 tokens), throughput: 34.76 token/s (1 x 34.76 token/s)
-Batch size = 32: 3104 tokens generated (32 x 97 tokens), throughput: 777.44 token/s (32 x 24.30 token/s)
-Batch size = 64: 6208 tokens generated (64 x 97 tokens), throughput: 1193.16 token/s (64 x 18.64 token/s)
-Batch size = 96: 9312 tokens generated (96 x 97 tokens), throughput: 1316.07 token/s (96 x 13.71 token/s)
-Batch size = 128: 12416 tokens generated (128 x 97 tokens), throughput: 1475.43 token/s (128 x 11.53 token/s)
+Batch size = 1: 97 tokens generated (1 x 97 tokens), throughput: 39.00 token/s (1 x 39.00 token/s)
+Batch size = 32: 3104 tokens generated (32 x 97 tokens), throughput: 847.15 token/s (32 x 26.47 token/s)
+Batch size = 64: 6208 tokens generated (64 x 97 tokens), throughput: 1315.40 token/s (64 x 20.55 token/s)
+Batch size = 96: 9312 tokens generated (96 x 97 tokens), throughput: 1397.38 token/s (96 x 14.56 token/s)
+Batch size = 128: 12416 tokens generated (128 x 97 tokens), throughput: 1575.61 token/s (128 x 12.31 token/s)
 ```
 
 ### 10. Download ChatGLM3 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
