@@ -154,11 +154,11 @@ loading the model weights from meta-llama/Llama-2-7b-hf
 building the model
 starting the inference loop
 Instruct: Please talk about deep learning in 100 words. Output: Deep learning is a subset of machine learning that involves the use of artificial neural networks to model and solve complex problems. It has been instrumental in achieving state-of-the-art performance in various applications such as image and speech recognition, natural language processing, and autonomous driving. Deep learning algorithms are capable of learning and improving on their own by automatically adjusting their internal parameters during training, allowing them to adapt to new data and tasks.
-Batch size = 1: 92 tokens generated (1 x 92 tokens), throughput: 16.98 token/s (1 x 16.98 token/s)
-Batch size = 32: 2944 tokens generated (32 x 92 tokens), throughput: 273.94 token/s (32 x 8.56 token/s)
-Batch size = 64: 5888 tokens generated (64 x 92 tokens), throughput: 416.35 token/s (64 x 6.51 token/s)
-Batch size = 96: 8832 tokens generated (96 x 92 tokens), throughput: 430.80 token/s (96 x 4.49 token/s)
-Batch size = 128: 11776 tokens generated (128 x 92 tokens), throughput: 472.91 token/s (128 x 3.69 token/s)
+Batch size = 1: 92 tokens generated (1 x 92 tokens), throughput: 17.68 token/s (1 x 17.68 token/s)
+Batch size = 32: 2944 tokens generated (32 x 92 tokens), throughput: 280.65 token/s (32 x 8.77 token/s)
+Batch size = 64: 5888 tokens generated (64 x 92 tokens), throughput: 427.83 token/s (64 x 6.68 token/s)
+Batch size = 96: 8832 tokens generated (96 x 92 tokens), throughput: 439.13 token/s (96 x 4.57 token/s)
+Batch size = 128: 11776 tokens generated (128 x 92 tokens), throughput: 482.70 token/s (128 x 3.77 token/s)
 ```
 
 ### 2. Download Mistral weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -179,11 +179,11 @@ cargo run --release --example mistral --features gcu,scorpio,async -- --weight-f
 ```
 loaded the model in 11.816571124s
 Please talk about deep learning in 100 words. Deep learning is a subset of machine learning that uses artificial neural networks with multiple layers to model high-level abstractions in data. It has revolutionized the field of AI by achieving state-of-the-art results in various applications such as image and speech recognition, natural language processing, and autonomous driving. Deep learning models can learn features directly from raw data without explicit programming, enabling them to adapt to new situations and improve performance over time. The success of deep learning is due to the
-Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 16.59 token/s (1 x 16.59 token/s)
-Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 305.38 token/s (32 x 9.54 token/s)
-Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 443.93 token/s (64 x 6.94 token/s)
-Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 444.10 token/s (96 x 4.63 token/s)
-Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 491.15 token/s (128 x 3.84 token/s)
+Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 17.20 token/s (1 x 17.20 token/s)
+Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 312.47 token/s (32 x 9.76 token/s)
+Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 453.22 token/s (64 x 7.08 token/s)
+Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 451.10 token/s (96 x 4.70 token/s)
+Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 497.00 token/s (128 x 3.88 token/s)
 ```
 
 ### 3. Download Phi-2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -206,11 +206,11 @@ loaded the model in 5.305805412s
 starting the inference loop
 Instruct: Please talk about deep learning in 100 words. Output: 
 Deep learning is a subset of machine learning that involves artificial neural networks with multiple layers that are designed to mimic the way the human brain works. Deep learning algorithms are able to learn patterns and trends in large datasets, allowing machines to recognize objects, classify data, and make decisions without being explicitly programmed. Deep learning has made many advances in recent years, enabling applications from medical diagnosis to self-driving cars. While deep learning provides many benefits, it also comes with challenges such as ethical considerations, data privacy
-Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 22.73 token/s (1 x 22.73 token/s)
-Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 397.32 token/s (32 x 12.42 token/s)
-Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 591.54 token/s (64 x 9.24 token/s)
-Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 657.49 token/s (96 x 6.85 token/s)
-Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 713.20 token/s (128 x 5.57 token/s)
+Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 23.97 token/s (1 x 23.97 token/s)
+Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 412.69 token/s (32 x 12.90 token/s)
+Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 610.63 token/s (64 x 9.54 token/s)
+Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 675.43 token/s (96 x 7.04 token/s)
+Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 734.89 token/s (128 x 5.74 token/s)
 ```
 
 ### 4. Download Phi-3 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -240,7 +240,7 @@ One key advantage of deep learning over traditional machine learning techniques 
 
 
 Deep learning has been applied successfully in numerous domains, including speech recognition, natural language processing (NLP), computer vision, medical diagnosis, autonomous vehicles, finance, gaming, and many more. In the field of health
-300 tokens generated (1 x 300 tokens), throughput: 23.22 token/s (1 x 23.22 token/s)
+300 tokens generated (1 x 300 tokens), throughput: 24.54 token/s (1 x 24.54 token/s)
 ```
 
 ### 5. Download Yi-6B weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -265,11 +265,11 @@ loaded the model in 10.107661037s
 深度学习的核心在于其多层的神经网络结构，这些层包括输入层、隐藏层以及输出层。
 在训练深度学习模型时，通常会使用大量的数据进行训练，以使得模型能够更好地学习数据的特征和模式。
 深度学习在许多领域都有应用，例如计算机视觉、自然语言处理、音频
-Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 18.54 token/s (1 x 18.54 token/s)
-Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 347.03 token/s (32 x 10.84 token/s)
-Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 491.83 token/s (64 x 7.68 token/s)
-Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 501.69 token/s (96 x 5.23 token/s)
-Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 554.85 token/s (128 x 4.33 token/s)
+Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 19.32 token/s (1 x 19.32 token/s)
+Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 357.37 token/s (32 x 11.17 token/s)
+Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 502.93 token/s (64 x 7.86 token/s)
+Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 510.68 token/s (96 x 5.32 token/s)
+Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 563.07 token/s (128 x 4.40 token/s)
 ```
 
 ### 6 Download StableLM V2 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -296,11 +296,11 @@ Deep Learning is a subset of machine learning that uses artificial neural networ
 In simple terms, deep learning involves training large neural networks with multiple layers to learn from vast amounts of data. These networks can then be used for tasks such as image recognition, speech recognition, natural language processing, and predictive analytics.
 
 Deep Learning has revolutionized the field of artificial intelligence by enabling machines to perform complex tasks that were previously thought to require
-Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 36.69 token/s (1 x 36.69 token/s)
-Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 681.61 token/s (32 x 21.30 token/s)
-Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 1000.04 token/s (64 x 15.63 token/s)
-Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 1120.12 token/s (96 x 11.67 token/s)
-Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 1198.66 token/s (128 x 9.36 token/s)
+Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 38.95 token/s (1 x 38.95 token/s)
+Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 706.23 token/s (32 x 22.07 token/s)
+Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 1027.43 token/s (64 x 16.05 token/s)
+Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 1152.26 token/s (96 x 12.00 token/s)
+Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 1240.06 token/s (128 x 9.69 token/s)
 ```
 
 ### 7. Download Bigcode/Starcode weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -362,11 +362,11 @@ cargo run --release --example qwen --features gcu,scorpio,async -- --model 1.8b 
 **QWen Sample inference output (Scorpio X2, BF16):**
 ```
 请使用一百字来介绍一下深度学习。 深度学习是一种机器学习技术，它通过构建多层神经网络模型，模拟人脑的神经元结构和功能，从而实现对复杂数据的学习和处理。在深度学习中，输入数据被转化为一系列特征向量，然后通过多层非线性变换（如卷积、池化、全连接等）进行特征提取和分类，最后通过反向传播算法更新权重参数，以最小化预测误差。深度学习广泛应用于计算机视觉
-Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 37.86 token/s (1 x 37.86 token/s)
-Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 809.07 token/s (32 x 25.28 token/s)
-Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 1211.74 token/s (64 x 18.93 token/s)
-Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 1441.22 token/s (96 x 15.01 token/s)
-Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 1613.28 token/s (128 x 12.60 token/s)
+Batch size = 1: 100 tokens generated (1 x 100 tokens), throughput: 40.47 token/s (1 x 40.47 token/s)
+Batch size = 32: 3200 tokens generated (32 x 100 tokens), throughput: 852.61 token/s (32 x 26.64 token/s)
+Batch size = 64: 6400 tokens generated (64 x 100 tokens), throughput: 1261.24 token/s (64 x 19.71 token/s)
+Batch size = 96: 9600 tokens generated (96 x 100 tokens), throughput: 1492.01 token/s (96 x 15.54 token/s)
+Batch size = 128: 12800 tokens generated (128 x 100 tokens), throughput: 1679.36 token/s (128 x 13.12 token/s)
 ```
 
 ### 9. Download Gemma weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -392,11 +392,11 @@ Please talk about deep learning in 100 words.
 
 Deep learning is a subfield of machine learning that allows computers to learn from data without explicit programming. It involves the creation of artificial neural networks (ANNs) that mimic the structure and function of the human brain. These ANNs are trained on vast datasets, enabling them to identify patterns, make predictions, and solve problems. Deep learning has revolutionized various industries, including healthcare, finance, and transportation, by automating tasks, improving decision-making, and uncovering hidden insights.
 
-Batch size = 1: 97 tokens generated (1 x 97 tokens), throughput: 39.00 token/s (1 x 39.00 token/s)
-Batch size = 32: 3104 tokens generated (32 x 97 tokens), throughput: 847.15 token/s (32 x 26.47 token/s)
-Batch size = 64: 6208 tokens generated (64 x 97 tokens), throughput: 1315.40 token/s (64 x 20.55 token/s)
-Batch size = 96: 9312 tokens generated (96 x 97 tokens), throughput: 1397.38 token/s (96 x 14.56 token/s)
-Batch size = 128: 12416 tokens generated (128 x 97 tokens), throughput: 1575.61 token/s (128 x 12.31 token/s)
+Batch size = 1: 97 tokens generated (1 x 97 tokens), throughput: 39.62 token/s (1 x 39.62 token/s)
+Batch size = 32: 3104 tokens generated (32 x 97 tokens), throughput: 857.56 token/s (32 x 26.80 token/s)
+Batch size = 64: 6208 tokens generated (64 x 97 tokens), throughput: 1330.51 token/s (64 x 20.79 token/s)
+Batch size = 96: 9312 tokens generated (96 x 97 tokens), throughput: 1409.76 token/s (96 x 14.69 token/s)
+Batch size = 128: 12416 tokens generated (128 x 97 tokens), throughput: 1588.80 token/s (128 x 12.41 token/s)
 ```
 
 ### 10. Download ChatGLM3 weights to a local folder (e.g., THE_WEIGHT_FOLDER), it should contains at least the following files:
@@ -443,9 +443,9 @@ cargo run --release --example moondream --features gcu,scorpio,async -- --model-
 loaded the model in 2.122345717s
 loaded and encoded the image Tensor[dims 3, 378, 378; bf16, gcu:0] in 23.329414ms
 starting the inference loop
- The problem in this road is a crack in the sidewalk, which is a part of a larger crack in the sidewalk. This crack is located in the middle of the sidewalk and is surrounded by yellow lines. The crack is a safety hazard for pedestrians, as it can cause tripping or falling accidents. Additionally, the crack may indicate underlying structural issues or poor maintenance of the sidewalk, which could lead to further deterioration and pose a risk to the safety of pedestrians. It is essential for the city to address this issue promptly to ensure the safety of its residents.
-generated in 4.958541815 seconds
-112 tokens generated (22.39 token/s)
+ The problem in the road is a crack in the concrete. This crack is a result of the road's aging and the road's deterioration. The crack is a sign of the road's poor maintenance problem. The crack is a potential hazard for vehicles and can lead to accidents if not repaired. The crack can also cause the road to be a source of water seepage and moisture, which can cause the concrete to weaken and break down. The crack in the road can also can be a sign of the road's deterioration.
+generated in 4.249718788 seconds
+106 tokens generated (24.71 token/s)
 ```
 
 **Currently, the entire workflow can be computed on GCU (i.e., all weights, inputs and outputs buffers were created on GCU). There are 9 types of GCU kernels that have been initially implemented, i.e., affine, binary, cast, matmul, fill, indexing, reduce, ternary and unary, in ubridge/kernels**
