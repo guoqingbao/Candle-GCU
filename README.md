@@ -28,13 +28,12 @@ Candle + GCU Backend -> Ubridge -> UHHI -> GCU Runtime (http://git.enflame.cn/sw
 
 Currently, candle-gcu supports following models in candle-transformers. Notably, this progress couples with the community works
 
-__TODO: update status with the following template__
-| LLM Model ID | LLM Model | Supporting GPU | Supporting Scorpio
+| LLM Model ID | LLM Model | GPU Support | GCU Support
 |--|--|--|--|
 | #1 | LLAMA/LLAMA2/LLaMa3 |✅|✅|
 | #2 | Mistral (v0.1, v0.2) |✅|✅|
 | #3 | Phi (v1, v1.5, v2) |✅|✅|
-| #4 | Phi-3 （4.8B, 7B） |✅|✅|
+| #4 | Phi-3 （3.8B, 7B） |✅|✅|
 | #5 | Yi |✅|✅|
 | #6 | StableLM (v1, v1-zephyr, v2, v2-zephyr) |✅|✅|
 | #7 | BigCode/StarCode |✅|✅|
@@ -54,7 +53,7 @@ __TODO: update status with the following template__
 </video> -->
 <img src="./resources/Candle-GCU-BigCode.gif" width="75%" height="75%" >
 
-<img src="./resources/Candle-GCU-Gemma.gif" width="75%" height="75%" >
+<img src="./resources/Candle-GCU-Qwen.gif" width="75%" height="75%" >
 
 <img src="./resources/Candle-GCU-Moondream2.gif" width="75%" height="75%" >
 
