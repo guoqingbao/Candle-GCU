@@ -51,11 +51,18 @@ Currently, candle-gcu supports following models in candle-transformers. Notably,
 <!-- <video autoplay loop muted id="video" width="630" height="500" controls="" preload="none" poster="StableLM Coding Inference">
 	<source id="mp4" src="./resources/Candle-GCU-BigCode.mp4" type="video/mp4">
 </video> -->
-<img src="./resources/Candle-GCU-BigCode.gif" width="75%" height="75%" >
+<img src="./resources/Candle-GCU-BigCode.gif" width="65%" height="65%" >
 
-<img src="./resources/Candle-GCU-Qwen.gif" width="75%" height="75%" >
+<img src="./resources/Candle-GCU-Qwen.gif" width="65%" height="65%" >
 
-<img src="./resources/Candle-GCU-Moondream2.gif" width="75%" height="75%" >
+<img src="./resources/Candle-GCU-Moondream2.gif" width="65%" height="65%" >
+
+## Sample chat service powered by Candle-GCU (LLaMa2 7B, BF16)
+
+Refer to: http://git.enflame.cn/era/candle-vllm-gcu
+
+<img src="./resources/candle-vllm-gcu-demo.gif" width="65%" height="65%" >
+
 
 ## Installation of dependencies 
 To bootstrap this project, you should run follow cmd first to fetch all the submodules from its source repos:
