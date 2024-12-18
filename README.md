@@ -57,11 +57,11 @@ Currently, candle-gcu supports following models in candle-transformers. Notably,
 
 <img src="./resources/Candle-GCU-Moondream2.gif" width="65%" height="65%" >
 
-## Sample chat service powered by Candle-GCU (LLaMa3.1 8B, BF16, 22 tokens/s)
+## Sample chat service powered by Candle-GCU (LLaMa3.1 8B, 8bit, ~30 tokens/s)
 
 Refer to (private repo for Enflame GCU): http://git.enflame.cn/era/candle-vllm-gcu
 
-<img src="./resources/candle-vllm-gcu-demo.gif" width="65%" height="65%" >
+<img src="./resources/LLaMa3.1-8B-S60-Quant.gif" width="65%" height="65%" >
 
 _You may also refer to (public repo for GPU):_ https://github.com/EricLBuehler/candle-vllm 
 
