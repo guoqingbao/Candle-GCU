@@ -141,6 +141,15 @@ $\textcolor{green}{\text{Note}}$: $\textcolor{red}{\text{micro-kernels in red fo
 
 ✅: Naive implementation done.
 
+## Sample Multi-GUC LLM inference
+Before running the example, `eccl` library must be installed.
+
+Running multi-gcu llama example with eccl feature on two GCU devices (`num-shards`==2)
+
+```shell
+cargo run --release --example llama_multiprocess --features gcu,scorpio,eccl,async -- --weight-path /home/weights/Meta-Llama-3.1-8B-Instruct/ --num-shards 2 --dtype bf16 --prompt "Please talk about deep learning in 100 words."
+```
+
 ## Sample LLM Inference (LLaMa2, Mistral, Phi-2, Yi, BigCode, StableLM, QWen, Gemma)
 ### 1. Download LLaMa2 weights to a local folder, it should contains at least the following files:
 
