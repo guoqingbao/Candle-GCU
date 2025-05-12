@@ -45,6 +45,17 @@ Currently, candle-gcu supports following models in candle-transformers. Notably,
 | #13 | RWKV (v5) |✅|TBD|
 | #14 | Falcon |✅|TBD|
 | #15 | Stable Diffusion (v1, v1.5, v2) |✅|TBD|
+| #16 | DeepSeek V2/V3/R1 |✅|✅|
+
+## Sample chat service powered by Candle-GCU 
+Refer to (private repo for Enflame GCU): http://git.enflame.cn/era/candle-vllm-gcu
+
+1. **DeepSeek-R1-671/685B (AWQ, 8 x S60 (48GB), ~8 tokens/s)** (**offloaded ~120GB** weights to CPU memory)
+<img src="./resources/Candle-vLLM-GCU-DeepSeek-R1-671B.gif" width="85%" height="85%" >
+
+2. **LLaMa3.1 8B (AWQ, 1 x S60 (48GB), ~40 tokens/s)**
+<img src="./resources/LLaMa3.1-8B-S60-Quant-AWQ.gif" width="85%" height="85%" >
+
 
 ## Demo Video
 
@@ -57,11 +68,7 @@ Currently, candle-gcu supports following models in candle-transformers. Notably,
 
 <img src="./resources/Candle-GCU-Moondream2.gif" width="65%" height="65%" >
 
-## Sample chat service powered by Candle-GCU (LLaMa3.1 8B, 8bit, ~30 tokens/s)
 
-Refer to (private repo for Enflame GCU): http://git.enflame.cn/era/candle-vllm-gcu
-
-<img src="./resources/LLaMa3.1-8B-S60-Quant.gif" width="65%" height="65%" >
 
 _You may also refer to (public repo for GPU):_ https://github.com/EricLBuehler/candle-vllm 
 
@@ -140,6 +147,15 @@ $\textcolor{green}{\text{Note}}$: $\textcolor{red}{\text{micro-kernels in red fo
 **Attention**: flash attention, scaled dot-product attention
 
 ✅: Naive implementation done.
+
+## Sample Multi-GUC LLM inference
+Before running the example, `eccl` library must be installed.
+
+Running multi-gcu llama example with eccl feature on two GCU devices (`num-shards`==2)
+
+```shell
+cargo run --release --example llama_multiprocess --features gcu,scorpio,eccl,async -- --weight-path /home/weights/Meta-Llama-3.1-8B-Instruct/ --num-shards 2 --dtype bf16 --prompt "Please talk about deep learning in 100 words."
+```
 
 ## Sample LLM Inference (LLaMa2, Mistral, Phi-2, Yi, BigCode, StableLM, QWen, Gemma)
 ### 1. Download LLaMa2 weights to a local folder, it should contains at least the following files:
